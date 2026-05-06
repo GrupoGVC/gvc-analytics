@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GVC Analytics | Vendas</title>
+
+    <link rel="stylesheet" href="css/styles.css" />
+
+    <script src="js/vendor.chart.js"></script>
+    <script src="js/vendor.papaparse.js"></script>
+    <script src="js/vendor.xlsx.js"></script>
+    <script src="js/vendor.html2canvas.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/api-client.js"></script>
+    <script src="js/init.js"></script>
+  </head>
+  <body>
+    <!-- Vídeo de fundo -->
+    <video class="bg-video" autoplay loop muted playsinline preload="auto">
+      <source src="assets/background.mp4" type="video/mp4" />
+    </video>
+    <div class="bg-scrim"></div>
+
+    <div class="layout">
+      <!-- SIDEBAR -->
+      <aside class="sidebar liquid-glass-strong">
+        <div class="sb-scroll">
+          <div class="sb-brand">
+            <div class="mark">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#fff"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M12 3c2 2 3 4 3 6 0 1.5-.8 3-3 4.5-2.2-1.5-3-3-3-4.5 0-2 1-4 3-6z"
+                ></path>
+                <path
+                  d="M21 12c-2 2-4 3-6 3-1.5 0-3-.8-4.5-3 1.5-2.2 3-3 4.5-3 2 0 4 1 6 3z"
+                ></path>
+                <path
+                  d="M12 21c-2-2-3-4-3-6 0-1.5.8-3 3-4.5 2.2 1.5 3 3 3 4.5 0 2-1 4-3 6z"
+                ></path>
+                <path
+                  d="M3 12c2-2 4-3 6-3 1.5 0 3 .8 4.5 3-1.5 2.2-3 3-4.5 3-2 0-4-1-6-3z"
+                ></path>
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="1.6"
+                  fill="#fff"
+                  stroke="none"
+                ></circle>
+              </svg>
+            </div>
+            <div>
+              <div class="name">gvc</div>
+              <div class="sub">Vendas · 2026</div>
+            </div>
+          </div>
+
+          <!-- Importação de arquivo CRM -->
+          <div class="sb-section">
+            <div class="sb-title">Dados</div>
+
+            <!-- Botão de atualizar — substitui o import manual -->
+            <button id="btn-atualizar" class="import-btn">
+              <span style="display: flex; align-items: center; gap: 8px">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="23 4 23 10 17 10"></polyline>
+                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                </svg>
+                <span>↻ Atualizar dados</span>
+              </span>
+            </button>
+
+            <div id="import-status" class="import-status">Carregando...</div>
+          </div>
+
+          <!-- Filtros -->
+          <div class="sb-section">
+            <div class="sb-title">Filtros</div>
+            <div class="filter-label hot">Período — De</div>
+            <input
+              type="date"
+              id="dt-from"
+              class="filter-input filter-date"
+              value="2026-01-01"
+              onchange="applyFilters()"
+            />
+            <div class="filter-label hot">Período — Até</div>
+            <input
+              type="date"
+              id="dt-to"
+              class="filter-input filter-date"
+              onchange="applyFilters()"
+            />
+            <div class="filter-label">Responsável</div>
+            <select
+              id="sel-resp"
+              class="filter-select"
+              onchange="applyFilters()"
+            >
+              <option value="">Todos</option>
+            </select>
+            <div class="filter-label">Empresa Vendedora</div>
+            <div class="empresa-scroll">
+              <div id="empresa-checkboxes"></div>
+            </div>
+            <div id="filter-active" class="filter-active">
+              <span>✓ Filtro ativo</span>
+              <button class="clear-btn" onclick="clearFilters()">×</button>
+            </div>
+          </div>
+
+          <!-- Navegação entre abas -->
+          <div class="sb-section">
+            <div class="sb-title">Navegação</div>
+            <button
+              class="nav-link active"
+              onclick="showTab('consolidado', this)"
+            >
+              <span class="nav-ico">◇</span>Consolidado
+            </button>
+            <button class="nav-link" onclick="showTab('ranking', this)">
+              <span class="nav-ico">☆</span>Ranking
+            </button>
+            <button class="nav-link" onclick="showTab('funil', this)">
+              <span class="nav-ico">▽</span>Funil &amp; Alertas
+            </button>
+            <button class="nav-link" onclick="showTab('seller', this)">
+              <span class="nav-ico">◉</span>Seller Performance
+            </button>
+            <button class="nav-link" onclick="showTab('gestor', this)">
+              <span class="nav-ico">◎</span>Gestor
+            </button>
+            <button class="nav-link" onclick="showTab('origem', this)">
+              <span class="nav-ico">◈</span>Origem
+            </button>
+            <button class="nav-link" onclick="showTab('porte', this)">
+              <span class="nav-ico">◆</span>Porte do Cliente
+            </button>
+            <button class="nav-link" onclick="showTab('tipo', this)">
+              <span class="nav-ico">▤</span>Tipo de Negócio
+            </button>
+            <button class="nav-link" onclick="showTab('evolutivo', this)">
+              <span class="nav-ico">◠</span>Evolutivo
+            </button>
+            <button class="nav-link" onclick="showTab('marcadores', this)">
+              <span class="nav-ico">◈</span>Marcadores
+            </button>
+          </div>
+        </div>
+
+        <div class="sb-footer">
+          <div>
+            Período ·
+            <b><span id="period-label">2026-01-01 → 2026-04-30</span></b>
+          </div>
+          <div style="margin-top: 3px">
+            Atualização · <b><span id="data-ate">—</span></b>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN -->
+      <div class="main">
+        <header class="main-header liquid-glass-strong">
+          <div>
+            <div class="ph-title">GVC <em>Analytics</em></div>
+            <div class="ph-sub">
+              Dashboard de Vendas · Grupo GVC · Panorama CRM Ploomes
+            </div>
+          </div>
+          <div
+            style="
+              display: flex;
+              gap: 8px;
+              align-items: center;
+              flex-wrap: wrap;
+            "
+          >
+            <span class="ph-badge liquid-glass"
+              ><span class="dot"></span>Dados até
+              <span id="data-ate-h">—</span></span
+            >
+            <span class="ph-badge liquid-glass"
+              >Hoje · <span id="current-date">—</span></span
+            >
+          </div>
+        </header>
+
+        <div class="content">
+          <!-- TAB 1: CONSOLIDADO -->
+          <section id="tab-consolidado" class="section active">
+            <div id="cons-forecast" class="mb12"></div>
+            <div class="g4 mb12" id="cons-meta-cards"></div>
+            <div class="g3 mb12">
+              <div class="card">
+                <div class="card-title">Mix de Produtos vs Meta</div>
+                <div id="cons-mix-table"></div>
+              </div>
+              <div class="card">
+                <div class="card-title">Top Origens vs Meta</div>
+                <div id="cons-origens-table"></div>
+              </div>
+              <div class="card">
+                <div id="cons-gauge" class="gauge-wrap"></div>
+              </div>
+            </div>
+            <div class="g2 mb12">
+              <div class="card">
+                <div class="card-title">Vendas vs Meta — Mês a Mês</div>
+                <div style="height: 210px">
+                  <canvas id="chart-main"></canvas>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-title">Conversão por Mês</div>
+                <div style="height: 210px">
+                  <canvas id="chart-conv"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="g3 mb12">
+              <div class="card">
+                <div class="card-title">Funil · Progresso e Metas</div>
+                <div id="cons-funil-viz"></div>
+              </div>
+              <div class="card">
+                <div class="card-title">Porte do Cliente · Período</div>
+                <div id="cons-porte-viz"></div>
+              </div>
+              <div class="card">
+                <div class="card-title">Ranking Consultores</div>
+                <div id="cons-ranking-top5"></div>
+              </div>
+            </div>
+            <div class="card mb12">
+              <div class="card-title">Ganhos Recentes</div>
+              <div id="cons-ganhos-recentes"></div>
+            </div>
+            <div class="g2 mb12">
+              <div class="card">
+                <div class="card-title">Top Motivos de Não Conversão</div>
+                <div id="cons-motivos"></div>
+              </div>
+              <div class="card">
+                <div class="card-title">
+                  Leads em Quarentena · Pipeline &gt; 30 dias
+                </div>
+                <div id="cons-quarentena"></div>
+              </div>
+            </div>
+            <div class="card mb12">
+              <div class="card-title">Negócios em Forecast · Em Aberto</div>
+              <div id="cons-forecast-table"></div>
+            </div>
+            <div class="card mb12">
+              <div class="card-title">Performance por Consultor · Período</div>
+              <div id="cons-consultor-table"></div>
+            </div>
+            <div id="cons-kpis" class="kpi-row c5 mb12"></div>
+          </section>
+
+          <!-- TAB 2: RANKING -->
+          <section id="tab-ranking" class="section">
+            <div class="card mb12">
+              <div class="card-title">
+                Ranking por Receita Acumulada · Período
+              </div>
+              <div id="rank-table"></div>
+            </div>
+            <div class="card mb12">
+              <div class="card-title">Gauge de Atingimento por Consultor</div>
+              <div id="rank-gauges" class="g4"></div>
+            </div>
+            <div class="card">
+              <div class="card-title">Alertas por Vendedor</div>
+              <div id="rank-alertas"></div>
+            </div>
+          </section>
+
+          <!-- TAB 3: FUNIL & ALERTAS -->
+          <section id="tab-funil" class="section">
+            <div id="funil-kpis" class="kpi-row c4 mb12"></div>
+            <div class="card mb12">
+              <div class="card-title">Projeção de Receita · Forecast</div>
+              <div style="height: 230px">
+                <canvas id="chart-forecast"></canvas>
+              </div>
+            </div>
+            <div class="g2 mb12">
+              <div class="card">
+                <div class="card-title">Distribuição por Etapa do Funil</div>
+                <div id="funil-table"></div>
+              </div>
+              <div class="card">
+                <div class="card-title">Análise de Não Conversão</div>
+                <div id="funil-motivos"></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">Negócios em Pipeline</div>
+              <div id="funil-pipeline"></div>
+            </div>
+          </section>
+
+          <!-- TAB 4: SELLER PERFORMANCE -->
+          <section id="tab-seller" class="section">
+            <div id="sp-fixed-kpis" class="mb12"></div>
+            <div class="sp-layout">
+              <div class="sp-sidebar" id="sp-sidebar-list"></div>
+              <div class="sp-main" id="sp-main-panel"></div>
+            </div>
+          </section>
+
+          <!-- TAB 5: GESTOR -->
+          <section id="tab-gestor" class="section">
+            <div class="card mb12">
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 14px;
+                  flex-wrap: wrap;
+                "
+              >
+                <div
+                  style="
+                    font-size: 20px;
+                    color: #fff;
+                    letter-spacing: -0.03em;
+                    font-weight: 500;
+                  "
+                >
+                  Painel do
+                  <em
+                    class="font-serif"
+                    style="color: rgba(255, 255, 255, 0.85)"
+                    >Gestor</em
+                  >
+                </div>
+                <div style="font-size: 10.5px; color: var(--text3)">
+                  Análise individual · PDCA automático · Alertas de prioridade
+                </div>
+              </div>
+              <div
+                style="
+                  margin-top: 12px;
+                  display: flex;
+                  align-items: center;
+                  gap: 12px;
+                  flex-wrap: wrap;
+                "
+              >
+                <span
+                  class="filter-label"
+                  style="
+                    margin: 0;
+                    text-transform: none;
+                    letter-spacing: 0.01em;
+                    color: var(--text3);
+                    font-size: 11px;
+                  "
+                  >Consultor:</span
+                >
+                <select
+                  id="gestor-seller-select"
+                  class="filter-select"
+                  style="width: 240px"
+                  onchange="renderGestorPanel()"
+                >
+                  <option value="">— Selecione —</option>
+                </select>
+              </div>
+            </div>
+            <div class="g2 mb12">
+              <div class="card">
+                <div class="card-title">
+                  Prioridades Imediatas · Esta Semana
+                </div>
+                <div id="gestor-prioridades"></div>
+              </div>
+              <div class="card">
+                <div class="card-title">
+                  Alavancas de Crescimento · Este Mês
+                </div>
+                <div id="gestor-alavancas"></div>
+              </div>
+            </div>
+            <div class="card mb12">
+              <div class="card-title">
+                Prioridade de Atuação · Time Completo
+              </div>
+              <div id="gestor-priority-alerts"></div>
+            </div>
+            <div id="gestor-exec-summary" class="mb12"></div>
+            <div class="card mb12">
+              <div class="card-title">Análise de KPIs-Chave</div>
+              <div id="gestor-kpi-analysis"></div>
+            </div>
+            <div class="card mb12">
+              <div class="card-title">Insights Estratégicos</div>
+              <div id="gestor-insights"></div>
+            </div>
+            <div class="card">
+              <div class="card-title">Plano de Ação PDCA · Por KPI Crítico</div>
+              <div id="gestor-pdca"></div>
+            </div>
+          </section>
+
+          <!-- TAB 6: ORIGEM -->
+          <section id="tab-origem" class="section">
+            <div id="origem-mes-card" class="mb12"></div>
+            <div class="g2 mb12">
+              <div class="card">
+                <div class="card-title">Performance por Origem · Mês Atual</div>
+                <div id="origem-mes-table"></div>
+              </div>
+              <div class="card">
+                <div class="card-title">
+                  TOP 10 Origens por Tipo · Mês Atual
+                </div>
+                <div id="origem-top10"></div>
+              </div>
+            </div>
+            <div class="g2 mb12" id="origem-quadrantes"></div>
+            <div id="origem-cards" class="g3 mb12"></div>
+            <div class="card">
+              <div class="card-title">
+                Consolidado de Metas por Origem · 2026
+              </div>
+              <div id="origem-ating-table"></div>
+            </div>
+          </section>
+
+          <!-- TAB 7: PORTE DO CLIENTE -->
+          <section id="tab-porte" class="section">
+            <div id="porte-kpis" class="kpi-row c4 mb12"></div>
+            <div class="g2 mb12" id="porte-benchmark"></div>
+            <div class="card mb12">
+              <div class="card-title">Distribuição SQ × LQ por Consultor</div>
+              <div id="porte-consultor-table"></div>
+            </div>
+            <div class="card mb12">
+              <div class="card-title">Evolução Temporal · SQ × LQ por Mês</div>
+              <div id="porte-conv-table"></div>
+            </div>
+            <div class="card">
+              <div
+                style="font-size: 11px; color: var(--text3); line-height: 1.6"
+              >
+                <b style="color: #fff; font-weight: 500">LQ</b> = deals ≥
+                R$5.000 · <b style="color: #fff; font-weight: 500">SQ</b> =
+                deals &lt; R$5.000 · Benchmark qtd: 80% SQ / 20% LQ · Benchmark
+                receita: 70% LQ / 30% SQ
+              </div>
+            </div>
+          </section>
+
+          <!-- TAB 8: TIPO DE NEGÓCIO -->
+          <section id="tab-tipo" class="section">
+            <div id="tipo-kpis" class="kpi-row c3 mb12"></div>
+            <div class="g2 mb12">
+              <div class="card">
+                <div class="card-title">Receita por Tipo de Negócio</div>
+                <div id="tipo-table"></div>
+              </div>
+              <div class="card">
+                <div class="card-title">Evolutivo por Tipo de Produto</div>
+                <div style="height: 230px">
+                  <canvas id="chart-tipo-evo"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">
+                Vendas por Tipo · Por Consultor · Período
+              </div>
+              <div id="tipo-consultor-table"></div>
+            </div>
+          </section>
+
+          <!-- TAB 9: EVOLUTIVO -->
+          <section id="tab-evolutivo" class="section">
+            <div class="card mb12">
+              <div class="card-title">Receita Mensal por Ano</div>
+              <div style="height: 290px">
+                <canvas id="chart-evo-main"></canvas>
+              </div>
+            </div>
+            <div id="evo-cards" class="kpi-row c4 mb12"></div>
+            <div class="card">
+              <div class="card-title">Receita Mensal · Detalhamento</div>
+              <div id="evo-table"></div>
+            </div>
+          </section>
+
+          <!-- TAB 10: MARCADORES -->
+          <section id="tab-marcadores" class="section">
+            <div id="marc-kpis" class="kpi-row c4 mb12"></div>
+            <div class="g2 mb12">
+              <div class="card">
+                <div class="card-title">
+                  Receita por Marcador — Evolução 2026
+                </div>
+                <div style="height: 230px">
+                  <canvas id="chart-marc-evo"></canvas>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-title">Distribuição Mensal por Marcador</div>
+                <div id="marc-dist-table"></div>
+              </div>
+            </div>
+            <div class="card mb12">
+              <div class="card-title">Detalhamento por Marcador · Período</div>
+              <div id="marc-detail-table"></div>
+            </div>
+            <div class="card">
+              <div class="card-title">
+                Vendas por Marcador · Por Consultor · Período
+              </div>
+              <div id="marc-consultor-table"></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
