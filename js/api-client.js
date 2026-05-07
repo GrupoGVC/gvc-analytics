@@ -1,1 +1,1 @@
-const API_URL = 'api/api_nova.php';
+const API_URL = 'https://analytics.drc-gvc.tech/api/api_nova.php';
