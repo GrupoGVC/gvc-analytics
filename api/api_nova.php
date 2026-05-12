@@ -4,7 +4,7 @@
 // Estratégia simples: uma página por request, sem timeout
 // ==========================================================
 
-define('PLOOMES_API_KEY', 'API_KEY');
+define('PLOOMES_API_KEY', '');
 define('PLOOMES_BASE_URL', 'https://api2.ploomes.com');
 define('PAGE_SIZE', 200); // pequeno o suficiente para responder rápido
 
