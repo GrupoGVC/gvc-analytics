@@ -3,18 +3,40 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>GVC Analytics | Vendas</title>
+    <title>GVC Analytics — Vendas</title>
+    <link rel="icon" type="image/png" href="/assets/logo_grupogvc.png" />
 
+    <!--
+    ==========================================================
+    GVC Analytics — Vendas | Ponto de entrada
+    Arquivo: index.html
+
+    Estrutura do projeto:
+      index.html              ← esta página (estrutura HTML)
+      css/
+        styles.css            ← fontes + variáveis CSS + todos os estilos
+      js/
+        vendor.chart.js       ← Chart.js (biblioteca de gráficos)
+        vendor.papaparse.js   ← PapaParse (leitura de CSV)
+        vendor.xlsx.js        ← SheetJS (leitura de .xlsx)
+        vendor.html2canvas.js ← html2canvas (exportar PNG WhatsApp)
+        config.js             ← constantes, AppState, utilitários, parsing
+        app.js                ← funções de renderização de cada aba
+        init.js               ← DOMContentLoaded (ponto de entrada)
+      assets/
+        background.mp4        ← vídeo de fundo da interface
+        fonts/                ← arquivos .woff2 (Poppins + Source Serif 4)
+    ==========================================================
+  -->
+
+    <!-- Estilos (fontes + variáveis + componentes) -->
     <link rel="stylesheet" href="css/styles.css" />
 
+    <!-- Bibliotecas de terceiros — carregadas antes do código da app -->
     <script src="js/vendor.chart.js"></script>
     <script src="js/vendor.papaparse.js"></script>
     <script src="js/vendor.xlsx.js"></script>
     <script src="js/vendor.html2canvas.js"></script>
-    <script src="js/config.js"></script>
-    <script src="js/app.js"></script>
-    <script src="js/api-client.js"></script>
-    <script src="js/init.js"></script>
   </head>
   <body>
     <!-- Vídeo de fundo -->
@@ -24,7 +46,7 @@
     <div class="bg-scrim"></div>
 
     <div class="layout">
-      <!-- SIDEBAR -->
+      <!-- ============= SIDEBAR ============= -->
       <aside class="sidebar liquid-glass-strong">
         <div class="sb-scroll">
           <div class="sb-brand">
@@ -66,12 +88,14 @@
             </div>
           </div>
 
-          <!-- Importação de arquivo CRM -->
+          <!-- Atualizar dados via API Ploomes -->
           <div class="sb-section">
             <div class="sb-title">Dados</div>
-
-            <!-- Botão de atualizar — substitui o import manual -->
-            <button id="btn-atualizar" class="import-btn">
+            <button
+              class="import-btn"
+              id="btn-atualizar-api"
+              onclick="carregarDadosPloomes()"
+            >
               <span style="display: flex; align-items: center; gap: 8px">
                 <svg
                   width="14"
@@ -86,11 +110,12 @@
                   <polyline points="23 4 23 10 17 10"></polyline>
                   <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
                 </svg>
-                <span>↻ Atualizar dados</span>
+                <span>&#8645; Atualizar dados</span>
               </span>
             </button>
-
-            <div id="import-status" class="import-status">Carregando...</div>
+            <div id="import-status" class="import-status">
+              Nenhum arquivo carregado
+            </div>
           </div>
 
           <!-- Filtros -->
@@ -102,15 +127,24 @@
               id="dt-from"
               class="filter-input filter-date"
               value="2026-01-01"
-              onchange="applyFilters()"
             />
             <div class="filter-label hot">Período — Até</div>
-            <input
-              type="date"
-              id="dt-to"
-              class="filter-input filter-date"
-              onchange="applyFilters()"
-            />
+            <input type="date" id="dt-to" class="filter-input filter-date" />
+            <button class="confirm-date-btn" onclick="confirmDateFilter()">
+              <svg
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              Aplicar período
+            </button>
             <div class="filter-label">Responsável</div>
             <select
               id="sel-resp"
@@ -179,7 +213,7 @@
         </div>
       </aside>
 
-      <!-- MAIN -->
+      <!-- ============= MAIN ============= -->
       <div class="main">
         <header class="main-header liquid-glass-strong">
           <div>
@@ -204,6 +238,22 @@
               >Hoje · <span id="current-date">—</span></span
             >
           </div>
+          <button
+            onclick="logout()"
+            style="
+              background: rgba(255, 255, 255, 0.06);
+              border: 1px solid rgba(255, 255, 255, 0.12);
+              border-radius: 8px;
+              color: rgba(255, 255, 255, 0.6);
+              font-size: 11px;
+              padding: 6px 12px;
+              cursor: pointer;
+              font-family: inherit;
+              transition: background 0.2s;
+            "
+          >
+            Sair
+          </button>
         </header>
 
         <div class="content">
@@ -542,7 +592,23 @@
             </div>
           </section>
         </div>
+        <!-- /.content -->
       </div>
+      <!-- /.main -->
     </div>
+    <!-- /.layout -->
+
+    <!--
+  Ordem de carregamento obrigatória:
+  1. config.js  — define constantes, AppState e funções utilitárias
+  2. app.js     — usa AppState; define funções de renderização
+  3. init.js    — usa tudo acima; dispara o DOMContentLoaded
+-->
+    <script src="js/config.js"></script>
+    <script src="js/api-client.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/init.js"></script>
+
+    <script src="js/dashboard.js"></script>
   </body>
 </html>

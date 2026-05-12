@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(dtTo)dtTo.value=DEFAULT_DATE_TO;
   const pl=document.getElementById('period-label');if(pl)pl.textContent=`${DEFAULT_DATE_FROM} → ${DEFAULT_DATE_TO}`;
   if(typeof Chart!=='undefined'){Chart.defaults.color='rgba(255,255,255,.82)';Chart.defaults.font.family='Poppins';}
-  if(!loadLS())updateDashboard();else applyFilters();
+  // carregarDadosPloomes() é chamado após autenticação (login overlay)
   /* Ensure video plays */
   const vid=document.querySelector('video.bg-video');
   if(vid){

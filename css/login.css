@@ -1,0 +1,170 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  background: #060a0f;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Fundo animado igual ao dashboard */
+.bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 50% 0%,
+      rgba(30, 60, 40, 0.55) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 80% 80%,
+      rgba(20, 40, 80, 0.4) 0%,
+      transparent 60%
+    ),
+    #060a0f;
+}
+
+.card {
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 48px 40px 40px;
+  width: 360px;
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+}
+
+.logo {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.logo-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+.logo-title em {
+  font-style: italic;
+  color: #9effd4;
+}
+.logo-sub {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.field {
+  margin-bottom: 12px;
+}
+.field label {
+  display: block;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 6px;
+}
+.field input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  color: #fff;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+.field input:focus {
+  border-color: rgba(158, 255, 212, 0.5);
+  background: rgba(255, 255, 255, 0.09);
+}
+.field input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.error-msg {
+  min-height: 20px;
+  font-size: 11px;
+  color: #ff9eb2;
+  text-align: center;
+  margin: 8px 0 4px;
+  transition: opacity 0.3s;
+}
+
+.btn-login {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, #9effd4 0%, #bcd6ff 100%);
+  border: none;
+  border-radius: 12px;
+  color: #0a1628;
+  font-weight: 700;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    opacity 0.2s,
+    transform 0.15s;
+  margin-top: 8px;
+  letter-spacing: 0.02em;
+}
+.btn-login:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+.btn-login:active {
+  transform: translateY(0);
+}
+.btn-login:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.footer-note {
+  text-align: center;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.2);
+  margin-top: 24px;
+}
+
+/* Shake animation no erro */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-6px);
+  }
+  40%,
+  80% {
+    transform: translateX(6px);
+  }
+}
+.shake {
+  animation: shake 0.4s ease;
+}

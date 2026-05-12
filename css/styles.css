@@ -1600,3 +1600,31 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* ── Botão confirmar período ────────────────────── */
+.confirm-date-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: rgba(158, 255, 212, 0.10);
+  border: 1px solid rgba(158, 255, 212, 0.30);
+  border-radius: 10px;
+  color: #9effd4;
+  font-size: 11px;
+  font-family: inherit;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  justify-content: center;
+}
+.confirm-date-btn:hover {
+  background: rgba(158, 255, 212, 0.18);
+  border-color: rgba(158, 255, 212, 0.55);
+}
+.confirm-date-btn:active {
+  background: rgba(158, 255, 212, 0.25);
+}
