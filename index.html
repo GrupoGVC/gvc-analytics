@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>GVC Analytics — Vendas</title>
+    <title>GVC Analytics | Vendas</title>
     <link rel="icon" type="image/png" href="/assets/logo_grupogvc.png" />
 
     <!--
@@ -30,15 +30,13 @@
   -->
 
     <!-- Estilos (fontes + variáveis + componentes) -->
-    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/index.css" />
 
     <!-- Bibliotecas de terceiros — carregadas antes do código da app -->
-    <script src="js/vendor.chart.js"></script>
-    <script src="js/vendor.papaparse.js"></script>
-    <script src="js/vendor.xlsx.js"></script>
-    <script src="js/vendor.html2canvas.js"></script>
   </head>
   <body>
+    <script src="js/index.js"></script>
+
     <!-- Vídeo de fundo -->
     <video class="bg-video" autoplay loop muted playsinline preload="auto">
       <source src="assets/background.mp4" type="video/mp4" />
@@ -604,11 +602,13 @@
   2. app.js     — usa AppState; define funções de renderização
   3. init.js    — usa tudo acima; dispara o DOMContentLoaded
 -->
+    <script src="js/vendor.chart.js"></script>
+    <script src="js/vendor.papaparse.js"></script>
+    <script src="js/vendor.xlsx.js"></script>
+    <script src="js/vendor.html2canvas.js"></script>
     <script src="js/config.js"></script>
     <script src="js/api-client.js"></script>
     <script src="js/app.js"></script>
     <script src="js/init.js"></script>
-
-    <script src="js/dashboard.js"></script>
   </body>
 </html>
