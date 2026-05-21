@@ -1,6 +1,7 @@
 <?php
 // ==========================================================
-// GVC Analytics — Proxy PHP para API Ploomes v13
+// GVC Analytics — Proxy PHP para API Ploomes v14
+// 100% dinâmico
 // ==========================================================
 
 define('PLOOMES_API_KEY', '***REMOVED***');
@@ -21,6 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 set_time_limit(30);
 ini_set('memory_limit', '128M');
 
+// ── Helpers ───────────────────────────────────────────────
 function erroJson(string $msg, int $status = 500): void
 {
     http_response_code($status);
@@ -51,6 +53,7 @@ function cacheLimpar(): void
     foreach (glob(sys_get_temp_dir() . '/gvc_*.json') as $f) unlink($f);
 }
 
+// ── Requisição ao Ploomes ─────────────────────────────────
 function ploomesGet(string $endpoint): array
 {
     $ch = curl_init();
@@ -82,36 +85,12 @@ function ploomesGet(string $endpoint): array
     return $data;
 }
 
-function getMapas(): array
+// ── Tags cacheadas (evita 1 req extra por página) ─────────
+function getTagMap(): array
 {
-    $cached = cacheRead('mapas', 3600);
+    $cached = cacheRead('tags', 3600);
     if ($cached) return $cached;
 
-    // Owners
-    $owners = [];
-    try {
-        $r = ploomesGet('/Users?$select=Id,Name&$top=200');
-        foreach ($r['value'] ?? [] as $u) $owners[(string)$u['Id']] = $u['Name'];
-    } catch (Throwable) {
-    }
-
-    // Estágios
-    $stages = [];
-    try {
-        $r = ploomesGet('/DealStages?$select=Id,Name&$top=200');
-        foreach ($r['value'] ?? [] as $s) $stages[(string)$s['Id']] = $s['Name'];
-    } catch (Throwable) {
-        $stages = [
-            '147860' => 'Contrato',
-            '147861' => 'Conexão',
-            '147862' => 'Negociação',
-            '147864' => 'Fechamento',
-            '150115' => 'Novos Leads',
-            '249925'  => 'Forcast',
-        ];
-    }
-
-    // Tags (Marcadores)
     $tags = [];
     try {
         $r = ploomesGet('/Tags?$select=Id,Name&$top=200');
@@ -121,16 +100,11 @@ function getMapas(): array
     } catch (Throwable) {
     }
 
-    $mapas = [
-        'owners' => $owners,
-        'stages' => $stages,
-        'tags'   => $tags,
-    ];
-
-    cacheWrite('mapas', $mapas);
-    return $mapas;
+    cacheWrite('tags', $tags);
+    return $tags;
 }
 
+// ── Normalização ──────────────────────────────────────────
 function getOtherProp(array $props, int $fieldId): string
 {
     $vals = [];
@@ -146,58 +120,63 @@ function getMarcadores(array $tags, array $tagMap): string
 {
     $vals = [];
     foreach ($tags as $t) {
-        $tagId = (string)($t['TagId'] ?? '');
-        $nome  = $tagMap[$tagId] ?? '';
+        $nome = $tagMap[(string)($t['TagId'] ?? '')] ?? '';
         if ($nome !== '' && !in_array($nome, $vals)) $vals[] = $nome;
     }
     return implode('; ', $vals);
 }
 
-function normalizarDeal(array $d, array $maps): array
+function normalizarDeal(array $d, array $tagMap): array
 {
     $statusMap = [1 => 'Pipeline', 2 => 'Ganha', 3 => 'Perdida'];
-    $props   = $d['OtherProperties'] ?? [];
-    $tags    = $d['Tags']            ?? [];
-    $stageId = (string)($d['StageId'] ?? '');
-    $ownerId = (string)($d['OwnerId'] ?? '');
+    $props     = $d['OtherProperties'] ?? [];
+    $tags      = $d['Tags']            ?? [];
 
     return [
-        'Titulo'             => $d['Title']    ?? '',
-        'Cliente'            => $d['Title']    ?? '',
-        'Valor'              => (float)($d['Amount'] ?? 0),
+        'Titulo'             => $d['Title']                    ?? '',
+        'Cliente'            => $d['Title']                    ?? '',
+        'Valor'              => (float)($d['Amount']           ?? 0),
         'Situação'           => $statusMap[$d['StatusId'] ?? 0] ?? 'Pipeline',
-        'Estágio'            => $maps['stages'][$stageId] ?? $stageId,
-        'Responsável'        => $maps['owners'][$ownerId] ?? $ownerId,
-        'Motivo de perda'    => $d['LossReason']['Name'] ?? '',
-        'Origem'             => $d['Origin']['Name']     ?? '',
-        'Data de Criação'    => $d['CreateDate']  ?? '',
-        'Data de Fechamento' => $d['FinishDate']  ?? '',
-        'Término'            => $d['FinishDate']  ?? '',
+        'Estágio'            => $d['Stage']['Name']            ?? '',
+        'Responsável'        => $d['Owner']['Name']            ?? '',
+        'Motivo de perda'    => $d['LossReason']['Name']       ?? '',
+        'Origem'             => $d['Origin']['Name']           ?? '',
+        'Data de Criação'    => $d['CreateDate']               ?? '',
+        'Data de Fechamento' => $d['FinishDate']               ?? '',
+        'Término'            => $d['FinishDate']               ?? '',
         'Empresa Vendedora'  => getOtherProp($props, 325257),
         'Empresa'            => getOtherProp($props, 325257),
         'Tipo de Venda'      => getOtherProp($props, 347280),
         'Meio de contato'    => getOtherProp($props, 327549),
-        'Marcadores'         => getMarcadores($tags, $maps['tags']),
+        'Marcadores'         => getMarcadores($tags, $tagMap),
     ];
 }
 
+// ── Actions ───────────────────────────────────────────────
 function actionPage(): array
 {
     $skip   = max(0, (int)($_GET['skip'] ?? 0));
     $top    = PAGE_SIZE;
-    $campos = 'Id,Title,Amount,StatusId,CreateDate,FinishDate,OwnerId,StageId,LossReasonId,OriginId';
-    $expand = 'OtherProperties,Origin($select=Id,Name),LossReason($select=Id,Name),Tags($select=TagId)';
-    $filter = 'PipelineId%20eq%20' . PIPELINE_ID;
+    $campos = 'Id,Title,Amount,StatusId,CreateDate,FinishDate,StageId,OwnerId,LossReasonId,OriginId';
+    $expand = implode(',', [
+        'OtherProperties',
+        'Stage($select=Id,Name)',
+        'Owner($select=Id,Name)',
+        'Origin($select=Id,Name)',
+        'LossReason($select=Id,Name)',
+        'Tags($select=TagId)',
+    ]);
 
-    $maps = getMapas();
+    $tagMap = getTagMap();
+
     $ep   = '/Deals?$select=' . $campos
         . '&$expand=' . $expand
         . '&$top=' . $top . '&$skip=' . $skip
-        . '&$filter=' . $filter;
+        . '&$filter=PipelineId%20eq%20' . PIPELINE_ID;
+
     $resp = ploomesGet($ep);
     $raw  = $resp['value'] ?? [];
-
-    $data = array_map(fn($d) => normalizarDeal($d, $maps), $raw);
+    $data = array_map(fn($d) => normalizarDeal($d, $tagMap), $raw);
 
     return [
         'data'    => $data,
@@ -228,18 +207,20 @@ function actionRefresh(): array
 function actionDebug(): array
 {
     $skip   = (int)($_GET['skip'] ?? 0);
-    $expand = 'OtherProperties,Origin($select=Id,Name),LossReason($select=Id,Name),Tags($select=TagId)';
-    $ep     = '/Deals?$select=Id,Title,LossReasonId,OriginId'
+    $campos = 'Id,Title,Amount,StatusId,CreateDate,FinishDate,StageId,OwnerId,LossReasonId,OriginId';
+    $expand = implode(',', [
+        'OtherProperties',
+        'Stage($select=Id,Name)',
+        'Owner($select=Id,Name)',
+        'Origin($select=Id,Name)',
+        'LossReason($select=Id,Name)',
+        'Tags($select=TagId)',
+    ]);
+    $ep = '/Deals?$select=' . $campos
         . '&$expand=' . $expand
-        . '&$top=10&$skip=' . $skip
+        . '&$top=5&$skip=' . $skip
         . '&$filter=PipelineId%20eq%20' . PIPELINE_ID;
     return ploomesGet($ep);
-}
-
-function actionFields(): array
-{
-    $r = ploomesGet('/Fields?$select=Id,Key,Name,EntityId&$top=200');
-    return ['fields' => $r['value'] ?? []];
 }
 
 function actionTags(): array
@@ -248,6 +229,13 @@ function actionTags(): array
     return ['tags' => $r['value'] ?? []];
 }
 
+function actionFields(): array
+{
+    $r = ploomesGet('/Fields?$select=Id,Key,Name,EntityId&$top=200');
+    return ['fields' => $r['value'] ?? []];
+}
+
+// ── Roteamento ────────────────────────────────────────────
 try {
     $action = $_GET['action'] ?? 'page';
 
@@ -257,8 +245,8 @@ try {
         'health'  => actionHealth(),
         'refresh' => actionRefresh(),
         'debug'   => actionDebug(),
-        'fields'  => actionFields(),
         'tags'    => actionTags(),
+        'fields'  => actionFields(),
         default   => throw new InvalidArgumentException("Ação desconhecida: $action"),
     };
 

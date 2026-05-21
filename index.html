@@ -31,6 +31,7 @@
 
     <!-- Estilos (fontes + variáveis + componentes) -->
     <link rel="stylesheet" href="css/index.css" />
+    <link rel="stylesheet" href="css/index-responsivo.css" />
 
     <!-- Bibliotecas de terceiros — carregadas antes do código da app -->
   </head>
@@ -43,181 +44,293 @@
     </video>
     <div class="bg-scrim"></div>
 
-    <div class="layout">
-      <!-- ============= SIDEBAR ============= -->
-      <aside class="sidebar liquid-glass-strong">
-        <div class="sb-scroll">
-          <div class="sb-brand">
-            <div class="mark">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#fff"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path
-                  d="M12 3c2 2 3 4 3 6 0 1.5-.8 3-3 4.5-2.2-1.5-3-3-3-4.5 0-2 1-4 3-6z"
-                ></path>
-                <path
-                  d="M21 12c-2 2-4 3-6 3-1.5 0-3-.8-4.5-3 1.5-2.2 3-3 4.5-3 2 0 4 1 6 3z"
-                ></path>
-                <path
-                  d="M12 21c-2-2-3-4-3-6 0-1.5.8-3 3-4.5 2.2 1.5 3 3 3 4.5 0 2-1 4-3 6z"
-                ></path>
-                <path
-                  d="M3 12c2-2 4-3 6-3 1.5 0 3 .8 4.5 3-1.5 2.2-3 3-4.5 3-2 0-4-1-6-3z"
-                ></path>
-                <circle
-                  cx="12"
-                  cy="12"
-                  r="1.6"
-                  fill="#fff"
-                  stroke="none"
-                ></circle>
-              </svg>
-            </div>
-            <div>
-              <div class="name">gvc</div>
-              <div class="sub">Vendas · 2026</div>
-            </div>
-          </div>
+    <!-- Overlay mobile — fora do layout (evita stacking context) -->
+    <div
+      class="sidebar-overlay"
+      id="sidebar-overlay"
+      onclick="closeSidebar()"
+    ></div>
 
-          <!-- Atualizar dados via API Ploomes -->
-          <div class="sb-section">
-            <div class="sb-title">Dados</div>
-            <button
-              class="import-btn"
-              id="btn-atualizar-api"
-              onclick="carregarDadosPloomes()"
+    <!-- Sidebar — fora do layout para position:fixed funcionar no mobile real -->
+    <aside class="sidebar liquid-glass-strong" id="sidebar">
+      <!-- Botão recolher (desktop) -->
+      <button
+        class="sidebar-collapse-btn"
+        id="sidebar-collapse-btn"
+        onclick="toggleSidebarCollapse()"
+        title="Recolher menu"
+      >
+        <svg
+          width="13"
+          height="13"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          id="collapse-icon"
+        >
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+
+      <div class="sb-scroll">
+        <div class="sb-brand">
+          <div class="mark">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#fff"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
             >
-              <span style="display: flex; align-items: center; gap: 8px">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.6"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <polyline points="23 4 23 10 17 10"></polyline>
-                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-                </svg>
-                <span>&#8645; Atualizar dados</span>
-              </span>
-            </button>
-            <div id="import-status" class="import-status">
-              Nenhum arquivo carregado
-            </div>
+              <path
+                d="M12 3c2 2 3 4 3 6 0 1.5-.8 3-3 4.5-2.2-1.5-3-3-3-4.5 0-2 1-4 3-6z"
+              ></path>
+              <path
+                d="M21 12c-2 2-4 3-6 3-1.5 0-3-.8-4.5-3 1.5-2.2 3-3 4.5-3 2 0 4 1 6 3z"
+              ></path>
+              <path
+                d="M12 21c-2-2-3-4-3-6 0-1.5.8-3 3-4.5 2.2 1.5 3 3 3 4.5 0 2-1 4-3 6z"
+              ></path>
+              <path
+                d="M3 12c2-2 4-3 6-3 1.5 0 3 .8 4.5 3-1.5 2.2-3 3-4.5 3-2 0-4-1-6-3z"
+              ></path>
+              <circle
+                cx="12"
+                cy="12"
+                r="1.6"
+                fill="#fff"
+                stroke="none"
+              ></circle>
+            </svg>
           </div>
+          <div class="sb-brand-text">
+            <div class="name">gvc</div>
+            <div class="sub">Vendas · 2026</div>
+          </div>
+        </div>
 
-          <!-- Filtros -->
-          <div class="sb-section">
-            <div class="sb-title">Filtros</div>
-            <div class="filter-label hot">Período — De</div>
-            <input
-              type="date"
-              id="dt-from"
-              class="filter-input filter-date"
-              value="2026-01-01"
-            />
-            <div class="filter-label hot">Período — Até</div>
-            <input type="date" id="dt-to" class="filter-input filter-date" />
-            <button class="confirm-date-btn" onclick="confirmDateFilter()">
+        <div class="sb-section">
+          <div class="sb-title">Dados</div>
+          <button
+            class="import-btn"
+            id="btn-atualizar-api"
+            onclick="carregarDadosPloomes()"
+          >
+            <span style="display: flex; align-items: center; gap: 8px">
               <svg
-                width="11"
-                height="11"
+                width="14"
+                height="14"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2.5"
+                stroke-width="1.6"
                 stroke-linecap="round"
                 stroke-linejoin="round"
               >
-                <polyline points="20 6 9 17 4 12"></polyline>
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
               </svg>
-              Aplicar período
-            </button>
-            <div class="filter-label">Responsável</div>
-            <select
-              id="sel-resp"
-              class="filter-select"
-              onchange="applyFilters()"
-            >
-              <option value="">Todos</option>
-            </select>
-            <div class="filter-label">Empresa Vendedora</div>
-            <div class="empresa-scroll">
-              <div id="empresa-checkboxes"></div>
-            </div>
-            <div id="filter-active" class="filter-active">
-              <span>✓ Filtro ativo</span>
-              <button class="clear-btn" onclick="clearFilters()">×</button>
-            </div>
-          </div>
-
-          <!-- Navegação entre abas -->
-          <div class="sb-section">
-            <div class="sb-title">Navegação</div>
-            <button
-              class="nav-link active"
-              onclick="showTab('consolidado', this)"
-            >
-              <span class="nav-ico">◇</span>Consolidado
-            </button>
-            <button class="nav-link" onclick="showTab('ranking', this)">
-              <span class="nav-ico">☆</span>Ranking
-            </button>
-            <button class="nav-link" onclick="showTab('funil', this)">
-              <span class="nav-ico">▽</span>Funil &amp; Alertas
-            </button>
-            <button class="nav-link" onclick="showTab('seller', this)">
-              <span class="nav-ico">◉</span>Seller Performance
-            </button>
-            <button class="nav-link" onclick="showTab('gestor', this)">
-              <span class="nav-ico">◎</span>Gestor
-            </button>
-            <button class="nav-link" onclick="showTab('origem', this)">
-              <span class="nav-ico">◈</span>Origem
-            </button>
-            <button class="nav-link" onclick="showTab('porte', this)">
-              <span class="nav-ico">◆</span>Porte do Cliente
-            </button>
-            <button class="nav-link" onclick="showTab('tipo', this)">
-              <span class="nav-ico">▤</span>Tipo de Negócio
-            </button>
-            <button class="nav-link" onclick="showTab('evolutivo', this)">
-              <span class="nav-ico">◠</span>Evolutivo
-            </button>
-            <button class="nav-link" onclick="showTab('marcadores', this)">
-              <span class="nav-ico">◈</span>Marcadores
-            </button>
+              <span>&#8645; Atualizar dados</span>
+            </span>
+          </button>
+          <div id="import-status" class="import-status">
+            Nenhum arquivo carregado
           </div>
         </div>
 
-        <div class="sb-footer">
-          <div>
-            Período ·
-            <b><span id="period-label">2026-01-01 → 2026-04-30</span></b>
-          </div>
-          <div style="margin-top: 3px">
-            Atualização · <b><span id="data-ate">—</span></b>
+        <div class="sb-section">
+          <div class="sb-title">Filtros</div>
+          <div class="filter-label hot">Período — De</div>
+          <input
+            type="date"
+            id="dt-from"
+            class="filter-input filter-date"
+            value="2026-01-01"
+          />
+          <div class="filter-label hot">Período — Até</div>
+          <input type="date" id="dt-to" class="filter-input filter-date" />
+          <button class="confirm-date-btn" onclick="confirmDateFilter()">
+            <svg
+              width="11"
+              height="11"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            Aplicar período
+          </button>
+          <div class="filter-label">Responsável</div>
+          <select id="sel-resp" class="filter-select" onchange="applyFilters()">
+            <option value="">Todos</option>
+          </select>
+          <div class="filter-label">Empresa Vendedora</div>
+          <div class="empresa-scroll"><div id="empresa-checkboxes"></div></div>
+          <div id="filter-active" class="filter-active">
+            <span>✓ Filtro ativo</span>
+            <button class="clear-btn" onclick="clearFilters()">×</button>
           </div>
         </div>
-      </aside>
 
+        <div class="sb-section">
+          <div class="sb-title">Navegação</div>
+          <button
+            class="nav-link active"
+            data-label="Consolidado"
+            onclick="
+              showTab('consolidado', this);
+              closeSidebar();
+            "
+          >
+            <span class="nav-ico">◇</span
+            ><span class="nav-label">Consolidado</span>
+          </button>
+          <button
+            class="nav-link"
+            data-label="Ranking"
+            onclick="
+              showTab('ranking', this);
+              closeSidebar();
+            "
+          >
+            <span class="nav-ico">☆</span><span class="nav-label">Ranking</span>
+          </button>
+          <button
+            class="nav-link"
+            data-label="Funil & Alertas"
+            onclick="
+              showTab('funil', this);
+              closeSidebar();
+            "
+          >
+            <span class="nav-ico">▽</span
+            ><span class="nav-label">Funil &amp; Alertas</span>
+          </button>
+          <button
+            class="nav-link"
+            data-label="Seller Performance"
+            onclick="
+              showTab('seller', this);
+              closeSidebar();
+            "
+          >
+            <span class="nav-ico">◉</span
+            ><span class="nav-label">Seller Performance</span>
+          </button>
+          <button
+            class="nav-link"
+            data-label="Gestor"
+            onclick="
+              showTab('gestor', this);
+              closeSidebar();
+            "
+          >
+            <span class="nav-ico">◎</span><span class="nav-label">Gestor</span>
+          </button>
+          <button
+            class="nav-link"
+            data-label="Origem"
+            onclick="
+              showTab('origem', this);
+              closeSidebar();
+            "
+          >
+            <span class="nav-ico">◈</span><span class="nav-label">Origem</span>
+          </button>
+          <button
+            class="nav-link"
+            data-label="Porte do Cliente"
+            onclick="
+              showTab('porte', this);
+              closeSidebar();
+            "
+          >
+            <span class="nav-ico">◆</span
+            ><span class="nav-label">Porte do Cliente</span>
+          </button>
+          <button
+            class="nav-link"
+            data-label="Tipo de Negócio"
+            onclick="
+              showTab('tipo', this);
+              closeSidebar();
+            "
+          >
+            <span class="nav-ico">▤</span
+            ><span class="nav-label">Tipo de Negócio</span>
+          </button>
+          <button
+            class="nav-link"
+            data-label="Evolutivo"
+            onclick="
+              showTab('evolutivo', this);
+              closeSidebar();
+            "
+          >
+            <span class="nav-ico">◠</span
+            ><span class="nav-label">Evolutivo</span>
+          </button>
+          <button
+            class="nav-link"
+            data-label="Marcadores"
+            onclick="
+              showTab('marcadores', this);
+              closeSidebar();
+            "
+          >
+            <span class="nav-ico">◈</span
+            ><span class="nav-label">Marcadores</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="sb-footer">
+        <div class="sb-footer-text">
+          Período ·
+          <b><span id="period-label">2026-01-01 → 2026-04-30</span></b>
+        </div>
+        <div class="sb-footer-text" style="margin-top: 3px">
+          Atualização · <b><span id="data-ate">—</span></b>
+        </div>
+      </div>
+    </aside>
+
+    <div class="layout" id="layout">
       <!-- ============= MAIN ============= -->
       <div class="main">
         <header class="main-header liquid-glass-strong">
-          <div>
-            <div class="ph-title">GVC <em>Analytics</em></div>
-            <div class="ph-sub">
-              Dashboard de Vendas · Grupo GVC · Panorama CRM Ploomes
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 10px;
+              min-width: 0;
+              flex: 1;
+            "
+          >
+            <button
+              class="hamburger"
+              id="hamburger-btn"
+              onclick="toggleSidebar()"
+              aria-label="Menu"
+            >
+              <span></span><span></span><span></span>
+            </button>
+            <div>
+              <div class="ph-title">GVC <em>Analytics</em></div>
+              <div class="ph-sub">
+                Dashboard de Vendas · Grupo GVC · Panorama CRM Ploomes
+              </div>
             </div>
           </div>
           <div
@@ -588,7 +701,7 @@
               </div>
               <div id="marc-consultor-table"></div>
             </div>
-          </section>
+          </section>s
         </div>
         <!-- /.content -->
       </div>
@@ -610,5 +723,53 @@
     <script src="js/api-client.js"></script>
     <script src="js/app.js"></script>
     <script src="js/init.js"></script>
+
+    <script>
+      // Sidebar collapse (desktop)
+      function toggleSidebarCollapse() {
+        var layout = document.getElementById("layout");
+        var icon = document.getElementById("collapse-icon");
+        var collapsed = layout.classList.toggle("sidebar-collapsed");
+        if (icon) {
+          icon.setAttribute(
+            "points",
+            collapsed
+              ? "9 18 15 12 9 6" // arrow right
+              : "15 18 9 12 15 6", // arrow left
+          );
+          icon.parentElement
+            .querySelector("polyline")
+            .setAttribute(
+              "points",
+              collapsed ? "9 18 15 12 9 6" : "15 18 9 12 15 6",
+            );
+        }
+        localStorage.setItem("sidebarCollapsed", collapsed ? "1" : "0");
+      }
+
+      // Sidebar mobile (hamburger)
+      function toggleSidebar() {
+        var sidebar = document.getElementById("sidebar");
+        var overlay = document.getElementById("sidebar-overlay");
+        sidebar.classList.toggle("sidebar-open");
+        overlay.classList.toggle("active");
+      }
+      function closeSidebar() {
+        document.getElementById("sidebar").classList.remove("sidebar-open");
+        document.getElementById("sidebar-overlay").classList.remove("active");
+      }
+
+      // Restore collapsed state on load
+      (function () {
+        if (localStorage.getItem("sidebarCollapsed") === "1") {
+          document.getElementById("layout").classList.add("sidebar-collapsed");
+          var icon = document.getElementById("collapse-icon");
+          if (icon)
+            icon.parentElement
+              .querySelector("polyline")
+              .setAttribute("points", "9 18 15 12 9 6");
+        }
+      })();
+    </script>
   </body>
 </html>

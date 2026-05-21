@@ -190,23 +190,47 @@ function pctBadge(p) {
 function gaugeColor(p) {
   return p >= 70 ? "#9effd4" : p >= 40 ? "#ffd79e" : "#ff9eb2";
 }
+// ── Substituir a função buildGaugeSVG no config.js ────────
+// Gráfico de gauge em CÍRCULO COMPLETO (360°) em vez de semicírculo
+
 function buildGaugeSVG(pct, sublabel, size) {
   const c = Math.max(0, pct || 0),
     disp = Math.min(100, c),
     col = gaugeColor(c);
-  const sa = (disp / 100) * Math.PI,
-    r = 78,
+
+  const r = 68,
     cx = 100,
     cy = 100;
-  const ea = Math.PI - sa,
-    ex = cx + r * Math.cos(ea),
-    ey = cy - r * Math.sin(ea),
-    la = sa > Math.PI ? 1 : 0;
-  return `<svg viewBox="-5 -12 210 140" overflow="visible" style="width:${size || "100%"};max-width:200px;display:block;margin:0 auto">
-    <path d="M ${cx - r} ${cy} A ${r} ${r} 0 0 0 ${cx + r} ${cy}" fill="none" stroke="rgba(255,255,255,.10)" stroke-width="14" stroke-linecap="round"/>
-    ${disp > 0 ? `<path d="M ${cx - r} ${cy} A ${r} ${r} 0 ${la} 0 ${ex.toFixed(1)} ${ey.toFixed(1)}" fill="none" stroke="${col}" stroke-width="14" stroke-linecap="round"/>` : ""}
-    <text x="${cx}" y="${cy - 8}" text-anchor="middle" fill="#FFFFFF" font-family="Poppins,sans-serif" font-weight="500" font-size="30" letter-spacing="-1">${c.toFixed(1)}%</text>
-    ${sublabel ? `<text x="${cx}" y="${cy + 12}" text-anchor="middle" fill="rgba(255,255,255,.7)" font-family="Poppins,sans-serif" font-size="9">${sublabel}</text>` : ""}
+  const circumference = 2 * Math.PI * r;
+  const strokeDash = (disp / 100) * circumference;
+  const gap = circumference - strokeDash;
+
+  // Começa do topo (−90°) usando transform rotate
+  return `<svg viewBox="10 10 180 180" style="width:${size || "100%"};max-width:200px;display:block;margin:0 auto" class="gauge-full-circle">
+    <!-- Trilha de fundo -->
+    <circle cx="${cx}" cy="${cy}" r="${r}"
+      fill="none"
+      stroke="rgba(255,255,255,.10)"
+      stroke-width="13"
+    />
+    <!-- Arco de progresso -->
+    <circle cx="${cx}" cy="${cy}" r="${r}"
+      fill="none"
+      stroke="${col}"
+      stroke-width="13"
+      stroke-linecap="round"
+      stroke-dasharray="${strokeDash.toFixed(2)} ${gap.toFixed(2)}"
+      transform="rotate(-90 ${cx} ${cy})"
+      style="transition: stroke-dasharray 0.6s ease"
+    />
+    <!-- Percentual central -->
+    <text x="${cx}" y="${cy + 6}" text-anchor="middle"
+      fill="#FFFFFF"
+      font-family="Poppins,sans-serif"
+      font-weight="500"
+      font-size="28"
+      letter-spacing="-1">${c.toFixed(1)}%</text>
+    ${sublabel ? `<text x="${cx}" y="${cy + 22}" text-anchor="middle" fill="rgba(255,255,255,.65)" font-family="Poppins,sans-serif" font-size="9">${sublabel}</text>` : ""}
   </svg>`;
 }
 function mapProduto(m) {
