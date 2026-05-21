@@ -51,7 +51,6 @@ function renderConsolidado() {
     fcEl.innerHTML = "";
   } else {
     fcEl.innerHTML = `<div class="fc-banner mb12">
-      <div style="font-size:28px">🔭</div>
       <div style="flex:1">
         <div class="fc-label">Forecast no Pipeline — Mês Atual</div>
         <div class="fc-val">${fmt(fcVal)}</div>
