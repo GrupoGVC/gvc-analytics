@@ -26,15 +26,12 @@
 }
 
 .sidebar-overlay {
-  display: none;
+  display: none !important;
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.55);
-  z-index: 2000;
-}
-
-.sidebar-overlay.active {
-  display: block;
+  z-index: 1100;
+  pointer-events: none;
 }
 
 /* DESKTOP */
@@ -225,6 +222,7 @@
 
   .sidebar-overlay.active {
     display: block !important;
+    pointer-events: auto;
   }
 
   /* SCROLL */

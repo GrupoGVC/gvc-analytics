@@ -462,6 +462,7 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   overflow-y: visible;
+  z-index: 10;
 }
 
 .sidebar-collapse-btn {
@@ -1628,9 +1629,9 @@ body {
 }
 
 .sidebar.liquid-glass-strong {
-  background: rgba(3, 10, 18, 0.72);
-  backdrop-filter: blur(18px) saturate(115%);
-  -webkit-backdrop-filter: blur(18px) saturate(115%);
+  background: rgba(3, 10, 18, 0.86);
+  backdrop-filter: blur(12px) saturate(110%);
+  -webkit-backdrop-filter: blur(12px) saturate(110%);
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -1766,3 +1767,4 @@ body {
   border: 1px solid rgba(158, 255, 212, 0.35);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
 }
+

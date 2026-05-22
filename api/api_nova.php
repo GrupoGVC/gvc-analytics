@@ -4,7 +4,7 @@
 // 100% dinâmico
 // ==========================================================
 
-define('PLOOMES_API_KEY', '***REMOVED***');
+define('PLOOMES_API_KEY', 'D0DF2FD1D69EFE2ACE4C664E2FCDD8BB84212696EDF83CDCDE1D17791BB117EA4EAFC8B39CCABAD6A54A37E388BB6674DC8F6CEAD5FD79731EA81BD39AE649A8');
 define('PLOOMES_BASE_URL', 'https://api2.ploomes.com');
 define('PAGE_SIZE', 200);
 define('PIPELINE_ID', 49305);
