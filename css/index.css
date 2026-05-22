@@ -454,14 +454,12 @@ body {
 /* ── Layout ─────────────────────────────────────────────── */
 .layout {
   position: relative;
-  z-index: 10;
   display: flex;
   align-items: flex-start;
   gap: 14px;
   padding: 16px;
   width: 100%;
   min-height: 100vh;
-
   overflow-x: hidden;
   overflow-y: visible;
 }
@@ -1629,6 +1627,12 @@ body {
   color: #fff;
 }
 
+.sidebar.liquid-glass-strong {
+  background: rgba(3, 10, 18, 0.72);
+  backdrop-filter: blur(18px) saturate(115%);
+  -webkit-backdrop-filter: blur(18px) saturate(115%);
+}
+
 /* ══════════════════════════════════════════════════════════
    Botão confirmar período
    ══════════════════════════════════════════════════════════ */
@@ -1660,28 +1664,15 @@ body {
   background: rgba(158, 255, 212, 0.25);
 }
 
-/* Logo do sidebar */
-.logo-mark {
-  width: 42px;
-  height: 42px;
-  padding: 5px;
-}
-
-.logo-mark img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-}
-
 /* =========================================
    LOGO GVC SIDEBAR
 ========================================= */
 
 .logo-mark {
-  width: 42px;
-  height: 42px;
-  padding: 4px;
+  width: 50px;
+  height: 50px;
+  padding: 3px;
+  border-radius: 10px;
 }
 
 .logo-mark img {
@@ -1689,6 +1680,7 @@ body {
   height: 100%;
   object-fit: contain;
   display: block;
+  border-radius: 8px;
 }
 
 /* =========================================
@@ -1709,8 +1701,9 @@ body {
 }
 
 .layout.sidebar-collapsed .logo-mark {
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
 }
 
 .layout.sidebar-collapsed .sidebar-collapse-btn {
@@ -1771,5 +1764,5 @@ body {
   white-space: nowrap;
   z-index: 9999;
   border: 1px solid rgba(158, 255, 212, 0.35);
-  box-shadow: 0 12px 28px rgba(0,0,0,.45);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
 }
