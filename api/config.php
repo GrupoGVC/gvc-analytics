@@ -1,23 +1,23 @@
 <?php
-// Carrega o .env em ambiente local
 $envPath = __DIR__ . '/../.env';
 if (file_exists($envPath)) {
     foreach (file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
         if (str_starts_with(trim($line), '#') || !str_contains($line, '=')) continue;
         [$key, $value] = explode('=', $line, 2);
-        putenv(trim($key) . '=' . trim($value));
-        $_ENV[trim($key)] = trim($value);
+        $value = trim($value, " \"'");
+        putenv(trim($key) . '=' . $value);
+        $_ENV[trim($key)] = $value;
     }
 }
 
-// Constantes da aplicação
-define('PLOOMES_API_KEY',  getenv('PLOOMES_API_KEY') ?: '');
-define('PLOOMES_BASE_URL', 'https://api2.ploomes.com');
-define('PAGE_SIZE',        200);
-define('PIPELINE_ID',      49305);
-define('APP_ENV',          getenv('APP_ENV') ?: 'production');
+define('PLOOMES_API_KEY',      getenv('PLOOMES_API_KEY')      ?: '');
+define('API_INTERNAL_SECRET',  getenv('API_INTERNAL_SECRET')  ?: '');
+define('TOKEN_SECRET',         getenv('TOKEN_SECRET')         ?: '');
+define('APP_ENV',              getenv('APP_ENV')              ?: 'production');
+define('PLOOMES_BASE_URL',     'https://api2.ploomes.com');
+define('PAGE_SIZE',            200);
+define('PIPELINE_ID',          49305);
 
-// Erros
 if (APP_ENV === 'development') {
     ini_set('display_errors', 1);
     error_reporting(E_ALL);
@@ -26,9 +26,10 @@ if (APP_ENV === 'development') {
     error_reporting(0);
 }
 
-// Validação
-if (empty(PLOOMES_API_KEY)) {
+// Valida as duas constantes críticas
+if (empty(PLOOMES_API_KEY) || empty(TOKEN_SECRET)) {
     http_response_code(500);
-    echo json_encode(['error' => 'PLOOMES_API_KEY não configurada.']);
+    header('Content-Type: application/json');
+    echo json_encode(['error' => 'Servidor mal configurado.']);
     exit;
 }
