@@ -355,7 +355,7 @@ body {
 }
 
 /* ── Video background ──────────────────────────────────── */
-.bg-video {
+.bg-video{
   position: fixed;
   inset: 0;
   z-index: 0;
