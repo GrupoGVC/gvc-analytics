@@ -176,10 +176,12 @@ function actionPage(): array
     $data = array_map(fn($d) => normalizarDeal($d, $tagMap), $raw);
 
     return [
-        'data'    => $data,
-        'count'   => count($data),
-        'skip'    => $skip,
-        'hasMore' => count($raw) === $top,
+        'data'     => $data,
+        'count'    => count($data),
+        'skip'     => $skip,
+        'pageSize' => $top,
+        'nextSkip' => $skip + $top,
+        'hasMore'  => count($raw) === $top,
     ];
 }
 
@@ -238,6 +240,7 @@ try {
 
     $resultado = match ($action) {
         'page'    => actionPage(),
+        'count'   => actionCount(),
         'stages'  => actionStages(),
         'health'  => actionHealth(),
         'refresh' => actionRefresh(),
@@ -252,4 +255,26 @@ try {
     erroJson($e->getMessage(), 400);
 } catch (Throwable $e) {
     erroJson($e->getMessage(), 500);
+}
+
+function actionCount(): array
+{
+    try {
+        $ep = '/Deals?$select=Id'
+            . '&$top=1'
+            . '&$count=true'
+            . '&$filter=PipelineId%20eq%20' . PIPELINE_ID;
+
+        $resp = ploomesGet($ep);
+
+        $total = $resp['@odata.count'] ?? $resp['odata.count'] ?? null;
+
+        return [
+            'total' => is_numeric($total) ? (int)$total : null,
+        ];
+    } catch (Throwable $e) {
+        return [
+            'total' => null,
+        ];
+    }
 }

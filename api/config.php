@@ -15,7 +15,7 @@ define('API_INTERNAL_SECRET',  getenv('API_INTERNAL_SECRET')  ?: '');
 define('TOKEN_SECRET',         getenv('TOKEN_SECRET')         ?: '');
 define('APP_ENV',              getenv('APP_ENV')              ?: 'production');
 define('PLOOMES_BASE_URL',     'https://api2.ploomes.com');
-define('PAGE_SIZE',            200);
+define('PAGE_SIZE',            300);
 define('PIPELINE_ID',          49305);
 
 if (APP_ENV === 'development') {

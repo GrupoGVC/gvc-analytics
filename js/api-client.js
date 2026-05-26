@@ -3,7 +3,7 @@
 // ==========================================================
 
 const API_URL = "api/api_nova.php";
-const PAGE_SIZE = 200;
+const FALLBACK_PAGE_SIZE = 300;
 
 // ── Barra de progresso ────────────────────────────────────
 function showProgress(pct, label) {
@@ -37,32 +37,99 @@ function hideProgress() {
 }
 
 // ── Busca todos os deals sequencialmente ─────────────────
+async function nextPaint() {
+  return new Promise(function (resolve) {
+    requestAnimationFrame(function () {
+      setTimeout(resolve, 0);
+    });
+  });
+}
+
+async function apiRequest(action, params = {}) {
+  var url = new URL(API_URL, window.location.href);
+
+  url.searchParams.set("action", action);
+
+  Object.keys(params).forEach(function (key) {
+    url.searchParams.set(key, params[key]);
+  });
+
+  var resp = await fetch(url.toString(), {
+    headers: {
+      "X-Internal-Secret": window.__APP_SECRET__ || "",
+    },
+  });
+
+  if (!resp.ok) throw new Error("HTTP " + resp.status);
+
+  var json = await resp.json();
+  if (json.error) throw new Error(json.error);
+
+  return json;
+}
+
+async function fetchTotalDeals() {
+  try {
+    var json = await apiRequest("count");
+
+    if (Number.isFinite(json.total) && json.total > 0) {
+      return json.total;
+    }
+
+    return null;
+  } catch (e) {
+    console.warn("[api-client] Não foi possível obter total real:", e);
+    return null;
+  }
+}
+
+// ── Busca todos os deals com progresso mais realista ──────
 async function fetchTodosDeals() {
   var todos = [];
   var skip = 0;
   var hasMore = true;
-  var pagina = 0;
+  var page = 0;
 
-  showProgress(4, "Conectando ao Ploomes...");
+  showProgress(5, "Calculando volume de dados...");
+  await nextPaint();
+
+  var totalReal = await fetchTotalDeals();
+
+  if (totalReal) {
+    showProgress(8, "Total encontrado: " + totalReal + " negócios");
+  } else {
+    showProgress(8, "Carregando negócios...");
+  }
+
+  await nextPaint();
 
   while (hasMore) {
-    pagina++;
+    page++;
 
-    var pct = Math.min(88, 8 + Math.log2(pagina + 1) * 22);
-    showProgress(pct, pagina + "ª página · " + todos.length + " negócios...");
+    var json = await apiRequest("page", { skip: skip });
 
-    var resp = await fetch(API_URL + "?action=page&skip=" + skip, {
-      headers: { "X-Internal-Secret": window.__APP_SECRET__ || "" },
-    });
-    if (!resp.ok) throw new Error("HTTP " + resp.status);
+    var pageData = json.data || [];
+    todos = todos.concat(pageData);
 
-    var json = await resp.json();
-    if (json.error) throw new Error(json.error);
+    hasMore = !!json.hasMore;
+    skip = json.nextSkip || skip + (json.pageSize || FALLBACK_PAGE_SIZE);
 
-    todos = todos.concat(json.data || []);
-    hasMore = json.hasMore;
-    skip += PAGE_SIZE;
+    var pct;
+
+    if (totalReal) {
+      pct = 10 + Math.min(75, Math.round((todos.length / totalReal) * 75));
+      showProgress(pct, todos.length + " de " + totalReal + " negócios...");
+    } else {
+      // fallback quando a API não informar total
+      pct = Math.min(85, 10 + page * 4);
+      showProgress(pct, todos.length + " negócios carregados...");
+    }
+
+    await nextPaint();
   }
+
+  showProgress(88, todos.length + " negócios recebidos");
+  await nextPaint();
 
   return todos;
 }
@@ -76,19 +143,26 @@ async function carregarDadosPloomes() {
       statusEl.textContent = "Carregando dados...";
       statusEl.style.color = "var(--info)";
     }
+
     if (btnAtualizar) btnAtualizar.disabled = true;
 
     // Fase 1 — Conexão
     showProgress(4, "Conectando...");
+    await nextPaint();
+
+    // Fase 2 — Busca na API
     var rawRows = await fetchTodosDeals();
 
-    // Fase 3 — Processamento local (88→95%)
-    // Esse trecho é síncrono e rápido, mas vale mostrar
-    showProgress(92, "Normalizando " + rawRows.length + " registros...");
+    if (!rawRows.length) {
+      throw new Error("Nenhum registro retornado.");
+    }
 
-    if (!rawRows.length) throw new Error("Nenhum registro retornado.");
+    // Fase 3 — Normalização local
+    showProgress(90, "Normalizando " + rawRows.length + " registros...");
+    await nextPaint();
 
     var dados = [];
+
     rawRows.forEach(function (row) {
       try {
         var n = normalizeRow(row);
@@ -96,11 +170,13 @@ async function carregarDadosPloomes() {
       } catch (e) {}
     });
 
-    if (!dados.length)
+    if (!dados.length) {
       throw new Error("Nenhum registro válido após normalização.");
+    }
 
-    // Fase 4 — Aplicando filtros e renderizando (95→100%)
-    showProgress(96, "Montando dashboard...");
+    // Fase 4 — Atualiza estado global
+    showProgress(93, "Atualizando dados internos...");
+    await nextPaint();
 
     AppState.rawData = dados;
     AppState.importMeta = {
@@ -110,31 +186,42 @@ async function carregarDadosPloomes() {
     };
 
     var dataFmt = new Date().toLocaleDateString("pt-BR");
+
     ["data-ate", "data-ate-h"].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) el.textContent = dataFmt;
     });
 
-    var emps = [],
-      empSet = {};
+    // Fase 5 — Montagem dos filtros
+    showProgress(95, "Montando filtros...");
+    await nextPaint();
+
+    var emps = [];
+    var empSet = {};
+
     dados.forEach(function (r) {
       if (r.empresa && !empSet[r.empresa]) {
         empSet[r.empresa] = 1;
         emps.push(r.empresa);
       }
     });
+
     populateEmpresaFilter(emps);
 
-    var cons = [],
-      conSet = {};
+    var cons = [];
+    var conSet = {};
+
     dados.forEach(function (r) {
       if (r.consultor && !conSet[r.consultor]) {
         conSet[r.consultor] = 1;
         cons.push(r.consultor);
       }
     });
+
     cons.sort();
+
     var sel = document.getElementById("sel-resp");
+
     if (sel) {
       sel.innerHTML =
         '<option value="">Todos</option>' +
@@ -145,12 +232,25 @@ async function carregarDadosPloomes() {
           .join("");
     }
 
-    showProgress(99, "Renderizando...");
+    // Fase 6 — Salvar estado local
+    showProgress(97, "Salvando estado...");
+    await nextPaint();
+
     saveLS();
 
-    // Pequeno delay para o browser renderizar o 99% antes de fechar
+    // Fase 7 — Renderização REAL do dashboard
+    // Aqui é onde o app.js realmente pesa.
+    showProgress(99, "Renderizando dashboard...");
+    await nextPaint();
+
+    applyFilters();
+
+    // Aguarda o browser pintar os gráficos/tabelas antes de fechar a barra
+    await nextPaint();
+
+    showProgress(100, "Dashboard atualizado");
     await new Promise(function (resolve) {
-      setTimeout(resolve, 120);
+      setTimeout(resolve, 250);
     });
 
     hideProgress();
@@ -161,15 +261,17 @@ async function carregarDadosPloomes() {
       statusEl.style.color = "var(--ok)";
     }
 
-    applyFilters();
     return dados;
   } catch (err) {
     console.error("[api-client]", err);
+
     hideProgress();
+
     if (statusEl) {
       statusEl.textContent = "⚠ Erro: " + err.message;
       statusEl.style.color = "var(--bad)";
     }
+
     throw err;
   } finally {
     if (btnAtualizar) btnAtualizar.disabled = false;
