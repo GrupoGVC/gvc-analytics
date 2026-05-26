@@ -62,7 +62,7 @@
   }
 
   .layout.sidebar-collapsed .sidebar-collapse-btn {
-    top: 72px;
+    top: 100px;
     left: 50%;
     right: auto;
     transform: translateX(-50%);

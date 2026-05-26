@@ -41,9 +41,16 @@ async function fetchTodosDeals() {
   var todos = [];
   var skip = 0;
   var hasMore = true;
-  var EST = 10500; // estimativa para barra
+  var pagina = 0;
+
+  showProgress(4, "Conectando ao Ploomes...");
 
   while (hasMore) {
+    pagina++;
+
+    var pct = Math.min(88, 8 + Math.log2(pagina + 1) * 22);
+    showProgress(pct, pagina + "ª página · " + todos.length + " negócios...");
+
     var resp = await fetch(API_URL + "?action=page&skip=" + skip, {
       headers: { "X-Internal-Secret": window.__APP_SECRET__ || "" },
     });
@@ -55,15 +62,11 @@ async function fetchTodosDeals() {
     todos = todos.concat(json.data || []);
     hasMore = json.hasMore;
     skip += PAGE_SIZE;
-
-    var pct = Math.min(92, Math.round((todos.length / EST) * 90));
-    showProgress(pct, todos.length + " negócios...");
   }
 
   return todos;
 }
 
-// ── Função principal ──────────────────────────────────────
 async function carregarDadosPloomes() {
   var statusEl = document.getElementById("import-status");
   var btnAtualizar = document.getElementById("btn-atualizar-api");
@@ -74,10 +77,14 @@ async function carregarDadosPloomes() {
       statusEl.style.color = "var(--info)";
     }
     if (btnAtualizar) btnAtualizar.disabled = true;
-    showProgress(3, "Conectando...");
 
+    // Fase 1 — Conexão
+    showProgress(4, "Conectando...");
     var rawRows = await fetchTodosDeals();
-    showProgress(95, "Processando...");
+
+    // Fase 3 — Processamento local (88→95%)
+    // Esse trecho é síncrono e rápido, mas vale mostrar
+    showProgress(92, "Normalizando " + rawRows.length + " registros...");
 
     if (!rawRows.length) throw new Error("Nenhum registro retornado.");
 
@@ -91,6 +98,9 @@ async function carregarDadosPloomes() {
 
     if (!dados.length)
       throw new Error("Nenhum registro válido após normalização.");
+
+    // Fase 4 — Aplicando filtros e renderizando (95→100%)
+    showProgress(96, "Montando dashboard...");
 
     AppState.rawData = dados;
     AppState.importMeta = {
@@ -135,7 +145,14 @@ async function carregarDadosPloomes() {
           .join("");
     }
 
+    showProgress(99, "Renderizando...");
     saveLS();
+
+    // Pequeno delay para o browser renderizar o 99% antes de fechar
+    await new Promise(function (resolve) {
+      setTimeout(resolve, 120);
+    });
+
     hideProgress();
 
     if (statusEl) {
