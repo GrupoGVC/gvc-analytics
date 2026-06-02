@@ -1,19 +1,15 @@
-# Segredos — nunca versionar
 .env
 .env.local
 .env.*.local
 
-# VS Code
+.vscode
 .vscode/settings.json
 .vscode/launch.json
 
-# Sistema operacional
 .DS_Store
 Thumbs.db
 
-# Logs
 *.log
 logs/
 
-# cleaner
-..btg-report
+..bfg-report

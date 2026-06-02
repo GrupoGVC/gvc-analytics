@@ -673,14 +673,12 @@ function renderRanking() {
     document.getElementById("rank-alertas").innerHTML = "";
     return;
   }
-  const fd = AppState.filteredData.filter(
-    (r) => r.monthKey && r.monthKey.startsWith("2026"),
-  );
+  const fd = AppState.filteredData;
   const ganhos = fd.filter((r) => r.status === "ganho");
   const perdidos = fd.filter((r) => r.status === "perdido");
-  const from = "2026-01-01",
-    to = `2026-12-31`;
-  const months = monthsInRange("2026-01", "2026-12");
+  const from = AppState.filters.dateFrom,
+    to = AppState.filters.dateTo;
+  const months = monthsInRange(from.substring(0, 7), to.substring(0, 7));
   const numMonths = months.length;
   // Dias restantes no mês atual
   const endOfMonth = new Date(CURRENT_YEAR, CURRENT_MONTH, 0);
@@ -795,9 +793,7 @@ function renderFunil() {
     );
     return;
   }
-  const fd = AppState.filteredData.filter(
-    (r) => r.monthKey && r.monthKey.startsWith("2026"),
-  );
+  const fd = AppState.filteredData;
   const pipeline = fd.filter((r) => r.status === "pipeline");
   const ganhos = fd.filter((r) => r.status === "ganho");
   const perdidos = fd.filter((r) => r.status === "perdido");
@@ -1045,9 +1041,7 @@ function renderFunil() {
   } else fpEl.innerHTML = noDataHtml("Nenhum negócio em pipeline no período");
 }
 function renderSeller() {
-  const fd = AppState.filteredData.filter(
-    (r) => r.monthKey && r.monthKey.startsWith("2026"),
-  );
+  const fd = AppState.filteredData;
   const ganhos = fd.filter((r) => r.status === "ganho");
   const perdidos = fd.filter((r) => r.status === "perdido");
   const from = AppState.filters.dateFrom,
@@ -1235,19 +1229,17 @@ function renderSeller() {
       // Store chart data for post-innerHTML initialization
       spChartData.push({ chartId, col, monthVals, chartLabels });
 
-      // === DUAL-VIEW: Consolidado 2026 + Mês Atual ===
+      // === DUAL-VIEW: Período filtrado + Mês Atual ===
       const curMK = `${CURRENT_YEAR}-${String(CURRENT_MONTH).padStart(2, "0")}`;
       const spAll = AppState.rawData.filter(
         (r) => r.status === "perdido" && r.consultor === s,
       );
-      const sgAno = sgAll.filter(
-        (r) => r.monthKey && r.monthKey.startsWith("2026"),
-      );
-      const spAno = spAll.filter(
-        (r) => r.monthKey && r.monthKey.startsWith("2026"),
-      );
+      const sgAno = sg;
+      const spAno = sp;
       const vAno = sgAno.reduce((a, r) => a + r.valor, 0);
-      const mAno = METAS_CONSULTOR[s] ? METAS_CONSULTOR[s].total * 12 : 0;
+      const mAno = METAS_CONSULTOR[s]
+        ? METAS_CONSULTOR[s].total * numMonths
+        : 0;
       const pctAno = mAno > 0 ? (vAno / mAno) * 100 : 0;
       const convAno =
         sgAno.length + spAno.length > 0
@@ -1276,7 +1268,7 @@ function renderSeller() {
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
           <div style="background:var(--bg3);border-radius:10px;padding:10px;border-top:2px solid var(--accent)">
-            <div style="font-family:'Poppins';font-size:9px;color:var(--text3);margin-bottom:8px;letter-spacing:1px">📊 CONSOLIDADO 2026</div>
+            <div style="font-family:'Poppins';font-size:9px;color:var(--text3);margin-bottom:8px;letter-spacing:1px">📊 PERÍODO FILTRADO</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
               ${[
                 ["REALIZADO", fmt(vAno), col],
@@ -1572,17 +1564,12 @@ function renderGestor() {
 
   // [A5.6] Priority alerts for ALL sellers
   const paEl = document.getElementById("gestor-priority-alerts");
-  const from = "2026-01-01",
-    to = "2026-12-31";
-  const months = monthsInRange("2026-01", "2026-12");
+  const from = AppState.filters.dateFrom,
+    to = AppState.filters.dateTo;
+  const months = monthsInRange(from.substring(0, 7), to.substring(0, 7));
   const numMonths = months.length;
-  const allG = AppState.filteredData.filter(
-    (r) => r.status === "ganho" && r.monthKey && r.monthKey.startsWith("2026"),
-  );
-  const allP = AppState.filteredData.filter(
-    (r) =>
-      r.status === "perdido" && r.monthKey && r.monthKey.startsWith("2026"),
-  );
+  const allG = AppState.filteredData.filter((r) => r.status === "ganho");
+  const allP = AppState.filteredData.filter((r) => r.status === "perdido");
   const endOfMonth = new Date(CURRENT_YEAR, CURRENT_MONTH, 0);
   const daysLeft = Math.max(
     0,
@@ -1704,41 +1691,19 @@ function renderGestorPanel() {
       `Ciclo de venda longo: média de ${diasMedio.toFixed(0)} dias no pipeline`,
     );
 
-  // Gestor dual-view: annual 2026 + current month
+  // Gestor dual-view: período filtrado
   const curMKGestor = `${CURRENT_YEAR}-${String(CURRENT_MONTH).padStart(2, "0")}`;
-  const sgYTDGestor = AppState.rawData.filter(
-    (r) =>
-      r.status === "ganho" &&
-      r.consultor === selName &&
-      r.monthKey &&
-      r.monthKey.startsWith("2026"),
-  );
-  const spYTDGestor = AppState.rawData.filter(
-    (r) =>
-      r.status === "perdido" &&
-      r.consultor === selName &&
-      r.monthKey &&
-      r.monthKey.startsWith("2026"),
-  );
+  const sgYTDGestor = sg;
+  const spYTDGestor = sp;
   const vYTDGestor = sgYTDGestor.reduce((a, r) => a + r.valor, 0);
-  const mYTDGestor = METAS_CONSULTOR[selName].total * CURRENT_MONTH;
+  const mYTDGestor = METAS_CONSULTOR[selName].total * numMonths;
   const pctYTDGestor = mYTDGestor > 0 ? (vYTDGestor / mYTDGestor) * 100 : 0;
   const convYTDGestor =
     sgYTDGestor.length + spYTDGestor.length > 0
       ? (sgYTDGestor.length / (sgYTDGestor.length + spYTDGestor.length)) * 100
       : 0;
-  const sgMesGestor = AppState.rawData.filter(
-    (r) =>
-      r.status === "ganho" &&
-      r.consultor === selName &&
-      r.monthKey === curMKGestor,
-  );
-  const spMesGestor = AppState.rawData.filter(
-    (r) =>
-      r.status === "perdido" &&
-      r.consultor === selName &&
-      r.monthKey === curMKGestor,
-  );
+  const sgMesGestor = sg;
+  const spMesGestor = sp;
   const vMesGestor = sgMesGestor.reduce((a, r) => a + r.valor, 0);
   const mMesGestor = METAS_CONSULTOR[selName].total;
   const pctMesGestor = mMesGestor > 0 ? (vMesGestor / mMesGestor) * 100 : 0;
@@ -1751,7 +1716,7 @@ function renderGestorPanel() {
     <!-- Dual view: Annual 2026 + Current Month -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
       <div style="padding:10px;background:rgba(255,215,158,.07);border-radius:8px;border-left:3px solid var(--warn)">
-        <div style="font-family:'Poppins';font-size:9px;color:var(--warn);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📊 Consolidado Ano 2026</div>
+        <div style="font-family:'Poppins';font-size:9px;color:var(--warn);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📊 Período Filtrado</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
           <div style="background:var(--bg3);border-radius:6px;padding:8px;text-align:center">
             <div style="font-family:'Poppins';font-size:9px;color:var(--text3)">REALIZADO</div>
@@ -2004,31 +1969,27 @@ function renderGestorPanel() {
 // TAB 6 — ORIGEM  [A6.1–A6.3]
 // ────────────────────────────────────────────────────────
 function renderOrigem() {
-  const fd = AppState.filteredData.filter(
-    (r) => r.monthKey && r.monthKey.startsWith("2026"),
-  );
+  const fd = AppState.filteredData;
   const from = AppState.filters.dateFrom,
     to = AppState.filters.dateTo;
   const months = monthsInRange(from.substring(0, 7), to.substring(0, 7));
   const numMonths = months.length;
   const ganhos = fd.filter((r) => r.status === "ganho");
   const no = AppState.rawData.length === 0;
-  const allRaw = AppState.rawData;
+  const allRaw = fd;
   const curMK = `${CURRENT_YEAR}-${String(CURRENT_MONTH).padStart(2, "0")}`;
 
-  /* Current month card (unfiltered) */
+  /* Card resumo do período filtrado */
   const mesCardEl = document.getElementById("origem-mes-card");
   if (mesCardEl) {
     if (no) {
       mesCardEl.innerHTML = "";
     } else {
-      const mesG = allRaw.filter(
-        (r) => r.status === "ganho" && r.monthKey === curMK,
-      );
-      const mesV = mesG.reduce((s, r) => s + r.valor, 0);
-      const mesAt = META_TIME_MES > 0 ? (mesV / META_TIME_MES) * 100 : 0;
+      const periodoV = ganhos.reduce((s, r) => s + r.valor, 0);
+      const metaPeriodo = META_TIME_MES * months.length;
+      const periodoAt = metaPeriodo > 0 ? (periodoV / metaPeriodo) * 100 : 0;
       const topOri = Object.entries(
-        mesG.reduce((acc, r) => {
+        ganhos.reduce((acc, r) => {
           acc[r.origem || "N/I"] = (acc[r.origem || "N/I"] || 0) + r.valor;
           return acc;
         }, {}),
@@ -2037,13 +1998,13 @@ function renderOrigem() {
         .slice(0, 3);
       mesCardEl.innerHTML = `<div class="card" style="border-top:3px solid var(--info)">
         <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
-          <div style="font-family:'Poppins';font-size:10px;color:var(--text3);text-transform:uppercase">📌 Mês Atual — ${MONTH_NAMES[CURRENT_MONTH - 1]}/${CURRENT_YEAR} (não afetado por filtros)</div>
+          <div style="font-family:'Poppins';font-size:10px;color:var(--text3);text-transform:uppercase">📌 Período: ${from} → ${to}</div>
         </div>
         <div class="kpi-row c4 mt8" style="gap:8px">
-          ${kpiCard("Vendas Mês", fmt(mesV), `Meta: ${fmt(META_TIME_MES)}`, "c", mesAt)}
-          ${kpiCard("Atingimento", fmtPct(mesAt), `${mesG.length} deals ganhos`, "c", mesAt)}
+          ${kpiCard("Vendas Período", fmt(periodoV), `Meta: ${fmt(metaPeriodo)}`, "c", periodoAt)}
+          ${kpiCard("Atingimento", fmtPct(periodoAt), `${ganhos.length} deals ganhos`, "c", periodoAt)}
           ${kpiCard("Top Origem", topOri[0] ? topOri[0][0] : "—", topOri[0] ? fmt(topOri[0][1]) : "", "b")}
-          ${kpiCard("Deals Mês", fmtN(mesG.length), `Ticket: ${fmt(mesG.length ? mesV / mesG.length : 0)}`, "g")}
+          ${kpiCard("Deals Período", fmtN(ganhos.length), `Ticket: ${fmt(ganhos.length ? periodoV / ganhos.length : 0)}`, "g")}
         </div>
       </div>`;
     }
@@ -2058,10 +2019,8 @@ function renderOrigem() {
     return;
   }
 
-  // Performance por Origem — Mês Atual (uses unfiltered rawData for curMK)
-  const mesGanhos = allRaw.filter(
-    (r) => r.status === "ganho" && r.monthKey === curMK,
-  );
+  // Performance por Origem — Período filtrado
+  const mesGanhos = ganhos;
   const origens = [
     ...new Set([
       ...mesGanhos.map((r) => r.origem || "Não informada"),
@@ -2090,7 +2049,7 @@ function renderOrigem() {
     rTotDeals = rows.reduce((s, r) => s + r.deals, 0);
 
   mesPerfEl.innerHTML =
-    `<div style="font-family:'Poppins';font-size:10px;color:var(--text3);margin-bottom:6px">Mês atual: ${MONTH_NAMES[CURRENT_MONTH - 1]}/${CURRENT_YEAR} · Não afetado por filtros</div>` +
+    `<div style="font-family:'Poppins';font-size:10px;color:var(--text3);margin-bottom:6px">Período: ${from} → ${to}</div>` +
     `<table class="dt"><thead><tr>
     <th>Origem</th><th class="num">Negócios</th><th class="num">Realizado</th><th class="num">Meta Mês</th><th class="num">Atingimento</th><th class="num">Ticket Médio</th>
   </tr></thead><tbody>${rows
@@ -2108,12 +2067,10 @@ function renderOrigem() {
   <tr style="border-top:2px solid var(--border-soft);font-weight:700"><td><strong>TOTAL</strong></td><td class="num"><strong>${fmtN(rTotDeals)}</strong></td><td class="num"><strong>${fmt(rTotReal)}</strong></td><td class="num"><strong>${fmt(rTotMeta)}</strong></td><td class="num">${pctBadge(rTotMeta > 0 ? (rTotReal / rTotMeta) * 100 : 0)}</td><td></td></tr>
   </tbody></table>`;
 
-  /* TOP 10 Origens por Tipo — Mês Atual (unfiltered) */
+  /* TOP 10 Origens por Tipo — Período filtrado */
   const top10El = document.getElementById("origem-top10");
   if (top10El) {
-    const mesDeals = allRaw
-      .filter((r) => r.status === "ganho" && r.monthKey === curMK)
-      .sort((a, b) => b.valor - a.valor);
+    const mesDeals = ganhos.slice().sort((a, b) => b.valor - a.valor);
     if (mesDeals.length) {
       // Group by origem, top 10 per group
       const byOri = {};
@@ -2126,7 +2083,7 @@ function renderOrigem() {
         deals.map((r, i) => ({ ...r, _ori: ori, _rank: i + 1 })),
       );
       top10El.innerHTML =
-        `<div style="font-family:'Poppins';font-size:10px;color:var(--text3);margin-bottom:6px">Mês atual · Não afetado por filtros</div>` +
+        `<div style="font-family:'Poppins';font-size:10px;color:var(--text3);margin-bottom:6px">Período: ${from} → ${to}</div>` +
         `<table class="dt"><thead><tr><th>#</th><th>Origem</th><th>Cliente</th><th>Produto</th><th class="num">Valor</th><th>Consultor</th></tr></thead><tbody>` +
         rows10
           .map(
@@ -2216,20 +2173,15 @@ function renderOrigem() {
     )
     .join("");
 
-  /* Consolidado de Metas por Origem — YTD 2026 (unfiltered) */
+  /* Consolidado de Metas por Origem — Período filtrado */
   const atEl = document.getElementById("origem-ating-table");
-  const ytdGanhos = allRaw.filter(
-    (r) =>
-      r.status === "ganho" &&
-      r.monthKey &&
-      r.monthKey.startsWith(String(CURRENT_YEAR)),
-  );
+  const ytdGanhos = ganhos;
   const atRows = METAS_ORIGEM.map((m) => {
     const og = ytdGanhos.filter(
       (r) => (r.origem || "Não informada") === m.origem,
     );
     const real = og.reduce((s, r) => s + r.valor, 0);
-    const metaAcum = m.total * CURRENT_MONTH;
+    const metaAcum = m.total * months.length;
     const pct = metaAcum > 0 ? (real / metaAcum) * 100 : 0;
     const falta = Math.max(0, metaAcum - real);
     return { ori: m.origem, rep: m.pct, real, metaAcum, pct, falta };
@@ -2237,7 +2189,7 @@ function renderOrigem() {
   const atTotReal = atRows.reduce((s, r) => s + r.real, 0),
     atTotMeta = atRows.reduce((s, r) => s + r.metaAcum, 0);
   atEl.innerHTML =
-    `<div style="font-family:'Poppins';font-size:10px;color:var(--text3);margin-bottom:6px">Acumulado 2026 (Jan–${MONTH_NAMES[CURRENT_MONTH - 1]}) · Não afetado por filtros</div>` +
+    `<div style="font-family:'Poppins';font-size:10px;color:var(--text3);margin-bottom:6px">Período: ${from} → ${to}</div>` +
     `<table class="dt"><thead><tr>
     <th>Origem</th><th class="num">Rep.%</th><th class="num">Realizado 2026</th><th class="num">Meta Acumulada</th><th class="num">Atingimento</th><th class="num">Falta Fechar</th>
   </tr></thead><tbody>${atRows
@@ -2260,9 +2212,7 @@ function renderOrigem() {
 // TAB 7 — PORTE DO CLIENTE  [A7.1–A7.3]
 // ────────────────────────────────────────────────────────
 function renderPorte() {
-  const fd = AppState.filteredData.filter(
-    (r) => r.monthKey && r.monthKey.startsWith("2026"),
-  );
+  const fd = AppState.filteredData;
   const ganhos = fd.filter((r) => r.status === "ganho");
   const perdidos = fd.filter((r) => r.status === "perdido");
   const no = AppState.rawData.length === 0;
