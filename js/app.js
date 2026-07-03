@@ -388,14 +388,28 @@ function renderConsolidado() {
   const totD = lq.length + sq.length;
   const lqDpct = totD > 0 ? (lq.length / totD) * 100 : 0,
     lqVpct = totV > 0 ? (lqV / totV) * 100 : 0;
-  function porteBench(label, actual, bench, color, altColor) {
-    return `<div style="margin-bottom:10px">
-      <div style="display:flex;justify-content:space-between;font-family:'Poppins';font-size:11px;color:var(--text2);margin-bottom:3px">
-        <span>${label}</span><span style="color:${color}">${fmtPct(actual)} <span style="color:var(--text3)">(bench: ${bench}%)</span></span>
+  function porteSplitBar(title, metaLabel, segA, segB, markerPct) {
+    const wA = Math.max(0, Math.min(100, segA.pct)).toFixed(1);
+    const wB = Math.max(0, Math.min(100, segB.pct)).toFixed(1);
+    const seg = (s, w) =>
+      `<div class="porte-seg" style="width:${w}%;background:${s.color};transition:width .4s">${
+        s.tip ? `<span class="porte-tip">${s.tip}</span>` : ""
+      }</div>`;
+    return `<div style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px;margin-bottom:6px">
+        <span style="font-family:'Poppins';font-size:12px;color:var(--text2)">${title}</span>
+        <span style="font-family:'Poppins';font-size:10px;color:var(--text3)">${metaLabel}</span>
       </div>
-      <div style="height:8px;background:var(--bg4);border-radius:4px;position:relative;overflow:visible">
-        <div style="position:absolute;top:0;left:0;height:100%;width:${Math.min(100, actual).toFixed(1)}%;background:${color};border-radius:4px;transition:width .4s"></div>
-        <div style="position:absolute;top:-3px;bottom:-3px;left:${bench}%;width:2px;background:rgba(255,255,255,.35);border-radius:1px"></div>
+      <div style="display:flex;gap:12px;margin-bottom:6px;font-family:'Poppins';font-size:11px">
+        <span style="color:${segA.color};font-weight:600">${segA.label} ${fmtPct(segA.pct)}</span>
+        <span style="color:${segB.color};font-weight:600">${segB.label} ${fmtPct(segB.pct)}</span>
+      </div>
+      <div style="position:relative;padding-top:14px">
+        <div style="position:absolute;top:0;left:${markerPct}%;transform:translateX(-50%);font-family:'Poppins';font-size:9px;color:var(--text3);white-space:nowrap">▼ meta ${markerPct}%</div>
+        <div class="porte-bar-track">
+          ${seg(segA, wA)}${seg(segB, wB)}
+          <div style="position:absolute;top:-4px;bottom:-4px;left:${markerPct}%;width:2px;background:#fff;z-index:1;pointer-events:none"></div>
+        </div>
       </div>
     </div>`;
   }
@@ -425,12 +439,45 @@ function renderConsolidado() {
         <div style="font-family:'Poppins';font-size:10px;color:var(--text3)">${ytdPorteN} deal${ytdPorteN !== 1 ? "s" : ""} ganho${ytdPorteN !== 1 ? "s" : ""}</div>
       </div>
     </div>` +
-    `<div style="font-family:'Poppins';font-size:11px;color:var(--text3);margin-bottom:8px">Quantitativo (nº deals)</div>` +
-    porteBench("SQ (<R$5k)", 100 - lqDpct, 80, "var(--green3)", "var(--text)") +
-    porteBench("LQ (≥R$5k)", lqDpct, 20, "var(--text)", "var(--green3)") +
-    `<div style="font-family:'Poppins';font-size:11px;color:var(--text3);margin:8px 0">Qualitativo (faturamento R$)</div>` +
-    porteBench("LQ receita", lqVpct, 70, "var(--text)", "var(--green3)") +
-    porteBench("SQ receita", 100 - lqVpct, 30, "var(--green3)", "var(--text)");
+    porteSplitBar(
+      "Quantitativo (nº deals)",
+      "Meta: 20% LQ / 80% SQ",
+      {
+        pct: lqDpct,
+        label: "LQ",
+        color: "var(--purple)",
+        tip: `${lq.length} deal${lq.length !== 1 ? "s" : ""} (${fmtPct(lqDpct)})`,
+      },
+      {
+        pct: 100 - lqDpct,
+        label: "SQ",
+        color: "var(--ok)",
+        tip: `${sq.length} deal${sq.length !== 1 ? "s" : ""} (${fmtPct(100 - lqDpct)})`,
+      },
+      20,
+    ) +
+    porteSplitBar(
+      "Qualitativo (faturamento R$)",
+      "Meta: 70% LQ / 30% SQ",
+      {
+        pct: lqVpct,
+        label: "LQ",
+        color: "var(--purple)",
+        tip: `${fmt(lqV)} (${fmtPct(lqVpct)})`,
+      },
+      {
+        pct: 100 - lqVpct,
+        label: "SQ",
+        color: "var(--ok)",
+        tip: `${fmt(sqV)} (${fmtPct(100 - lqVpct)})`,
+      },
+      70,
+    ) +
+    `<div style="display:flex;gap:14px;padding-top:8px;margin-top:2px;border-top:1px solid var(--border-soft)">
+      <span style="display:flex;align-items:center;gap:6px;font-family:'Poppins';font-size:10px;color:var(--text3)"><span style="width:9px;height:9px;border-radius:2px;background:var(--purple);display:inline-block"></span>LQ (≥R$5k)</span>
+      <span style="display:flex;align-items:center;gap:6px;font-family:'Poppins';font-size:10px;color:var(--text3)"><span style="width:9px;height:9px;border-radius:2px;background:var(--ok);display:inline-block"></span>SQ (&lt;R$5k)</span>
+      <span style="display:flex;align-items:center;gap:6px;font-family:'Poppins';font-size:10px;color:var(--text3)"><span style="width:2px;height:9px;background:#fff;display:inline-block"></span>marcador de meta</span>
+    </div>`;
 
   // [A1.7] Top 5 Consultores
   const r5El = document.getElementById("cons-ranking-top5");

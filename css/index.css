@@ -307,6 +307,16 @@
   --bad-soft: rgba(255, 158, 178, 0.14);
   --info: #bcd6ff;
   --info-soft: rgba(188, 214, 255, 0.14);
+  --purple: #d4bbff;
+  --purple-soft: rgba(212, 187, 255, 0.14);
+  --bg2: rgba(255, 255, 255, 0.05);
+  --bg3: rgba(255, 255, 255, 0.07);
+  --bg4: rgba(255, 255, 255, 0.09);
+  --border: rgba(255, 255, 255, 0.1);
+  --blue: var(--info);
+  --gold2: var(--warn);
+  --green3: var(--ok);
+  --red2: var(--bad);
   --gold: #ffd79e;
   --sidebar-w: 280px;
 }
@@ -355,7 +365,7 @@ body {
 }
 
 /* ── Video background ──────────────────────────────────── */
-.bg-video{
+.bg-video {
   position: fixed;
   inset: 0;
   z-index: 0;
@@ -1085,6 +1095,45 @@ body {
   background: #fff;
 }
 
+/* ── Porte do Cliente · barra segmentada com tooltip ─────── */
+.porte-bar-track {
+  display: flex;
+  position: relative;
+  height: 14px;
+}
+.porte-seg {
+  position: relative;
+  height: 100%;
+  cursor: default;
+}
+.porte-bar-track .porte-seg:first-child {
+  border-radius: 7px 0 0 7px;
+}
+.porte-bar-track .porte-seg:last-child {
+  border-radius: 0 7px 7px 0;
+}
+.porte-tip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  font-family: "Poppins", sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 5;
+}
+.porte-seg:hover .porte-tip {
+  opacity: 1;
+}
+
 /* ── Badges ────────────────────────────────────────────── */
 .badge {
   font-size: 10px;
@@ -1767,4 +1816,3 @@ body {
   border: 1px solid rgba(158, 255, 212, 0.35);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
 }
-
