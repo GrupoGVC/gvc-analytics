@@ -642,7 +642,7 @@ function renderConsolidado() {
         sp = perdidos.filter((r) => r.consultor === s);
       const v = sg.reduce((a, r) => a + r.valor, 0),
         m = METAS_CONSULTOR[s].total * numMonths;
-      const pct = m > 0 ? (v / m) * 100 : 0,
+      const pct = m > 0 ? (v / m) * 100 : null,
         conv =
           sg.length + sp.length > 0
             ? (sg.length / (sg.length + sp.length)) * 100
@@ -670,7 +670,7 @@ function renderConsolidado() {
     cRows
       .map(
         (r, i) =>
-          `<tr><td>${i + 1}</td><td class="hl">${r.s}</td><td class="num">${fmt(r.v)}</td><td class="num">${fmt(r.m)}</td><td class="num">${pctBadge(r.pct)}</td><td class="num">${r.g}</td><td class="num">${r.p}</td><td class="num">${fmtPct(r.conv)}</td><td class="num">${fmt(r.ticket)}</td></tr>`,
+          `<tr><td>${i + 1}</td><td class="hl">${r.s}</td><td class="num">${fmt(r.v)}</td><td class="num">${fmt(r.m)}</td><td class="num">${r.pct === null ? '<span class="badge">N/D</span>' : pctBadge(r.pct)}</td><td class="num">${r.g}</td><td class="num">${r.p}</td><td class="num">${fmtPct(r.conv)}</td><td class="num">${fmt(r.ticket)}</td></tr>`,
       )
       .join("") +
     `<tr style="border-top:2px solid var(--border-soft);font-weight:700"><td></td><td><strong>TOTAL</strong></td><td class="num"><strong>${fmt(cTotV)}</strong></td><td class="num"><strong>${fmt(cTotM)}</strong></td><td class="num">${pctBadge(cTotPct)}</td><td class="num"><strong>${cTotG}</strong></td><td class="num"><strong>${cTotP}</strong></td><td class="num"><strong>${fmtPct(cTotConv)}</strong></td><td></td></tr>` +

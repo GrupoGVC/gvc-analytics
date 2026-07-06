@@ -76,6 +76,24 @@ const METAS_CONSULTOR = {
     Consultoria: 0,
     total: 30000,
   },
+  Murillo: {
+    RSS: 0,
+    Gerenciamento: 0,
+    Consultoria: 0,
+    total: 40000,
+  },
+  Silvio: {
+    RSS: 0,
+    Gerenciamento: 0,
+    Consultoria: 0,
+    total: 20000,
+  },
+  Leonilton: {
+    RSS: 0,
+    Gerenciamento: 0,
+    Consultoria: 0,
+    total: 0,
+  },
 };
 const META_TIME_MES = 335000;
 const METAS_ORIGEM = [
