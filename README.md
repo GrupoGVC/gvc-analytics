@@ -184,17 +184,3 @@ server {
     }
 }
 ```
-
----
-
-## Sobre o Grupo GVC
-
-O Grupo GVC atua na gestão, valorização e tratamento de resíduos, promovendo soluções sustentáveis e inovadoras para o setor ambiental — compostagem, beneficiamento de agregados reciclados, produção de biogás e tratamento de chorume.
-
-[grupogvc.eco.br](https://grupogvc.eco.br/)
-
----
-
-## Licença
-
-MIT
