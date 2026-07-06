@@ -187,20 +187,6 @@ server {
 
 ---
 
-## Notas Técnicas
-
-**Sidebar fora do `.layout`** — O `backdrop-filter` aplicado ao `.layout` cria um stacking context que quebra `position: fixed` da sidebar em dispositivos móveis reais (funciona no DevTools mas falha em produção). A sidebar precisa viver fora desse container.
-
-**Ploomes API** — `$expand` e `$orderby` juntos podem causar 403. O campo `CloseDate` é bloqueado na API (usar `FinishDate`). Campos em `OtherProperties` não são acessíveis pela API pública.
-
-**Paginação no browser** — Páginas sequenciais de 300 deals direto do browser resolveram timeouts que ocorriam com bulk fetch server-side.
-
-**CSS custom properties** — Variáveis ausentes no `:root` renderizam silenciosamente como `transparent`. Toda variável referenciada em JS precisa estar declarada no CSS.
-
-**Autenticação** — Tokens HMAC-SHA256 no `localStorage` (PHP sessions eram incompatíveis com o setup nginx porta 8083 → 443). O `auth.php` implementa rate limiting por IP com bcrypt para senhas.
-
----
-
 ## Sobre o Grupo GVC
 
 O Grupo GVC atua na gestão, valorização e tratamento de resíduos, promovendo soluções sustentáveis e inovadoras para o setor ambiental — compostagem, beneficiamento de agregados reciclados, produção de biogás e tratamento de chorume.
