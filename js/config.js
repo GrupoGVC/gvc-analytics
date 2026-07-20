@@ -4,7 +4,6 @@
 // Contém: constantes, estado global (AppState), funções
 //          utilitárias, normalização e parsing de dados.
 // ==========================================================
-"use strict";
 
 "use strict";
 // ── CONSTANTS ────────────────────────────────────────────
@@ -28,71 +27,103 @@ const MONTH_NAMES = [
   "Dezembro",
 ];
 const METAS_CONSULTOR = {
-  "MARIANE ALMEIDA": {
+  "Mariane Almeida": {
     RSS: 2000,
     Gerenciamento: 22400,
     Consultoria: 600,
-    total: 25000,
+
+    get total() {
+      return this.RSS + this.Gerenciamento + this.Consultoria;
+    },
   },
+
   "Jefferson Ferreira": {
     RSS: 20000,
     Gerenciamento: 32000,
     Consultoria: 3000,
-    total: 55000,
+
+    get total() {
+      return this.RSS + this.Gerenciamento + this.Consultoria;
+    },
   },
-  "ELIS ADRIELE": {
+
+  "Elis Adriele": {
     RSS: 9400,
     Gerenciamento: 25000,
     Consultoria: 600,
-    total: 35000,
+
+    get total() {
+      return this.RSS + this.Gerenciamento + this.Consultoria;
+    },
   },
+
   "Laila Nunes": {
     RSS: 18000,
     Gerenciamento: 24000,
     Consultoria: 3000,
-    total: 45000,
+
+    get total() {
+      return this.RSS + this.Gerenciamento + this.Consultoria;
+    },
   },
+
   "Luciane Cruz Santana": {
     RSS: 7600,
     Gerenciamento: 34400,
     Consultoria: 3000,
-    total: 45000,
+
+    get total() {
+      return this.RSS + this.Gerenciamento + this.Consultoria;
+    },
   },
-  "Jacqueline Bastos": {
+
+  "Murillo Chaves": {
     RSS: 18000,
     Gerenciamento: 24000,
     Consultoria: 3000,
-    total: 45000,
+
+    get total() {
+      return this.RSS + this.Gerenciamento + this.Consultoria;
+    },
   },
+
   "Daniel Leles": {
     RSS: 9400,
     Gerenciamento: 25000,
     Consultoria: 600,
-    total: 35000,
+
+    get total() {
+      return this.RSS + this.Gerenciamento + this.Consultoria;
+    },
   },
+
   "Ivson Cavalcanti": {
     RSS: 10000,
     Gerenciamento: 20000,
     Consultoria: 0,
-    total: 30000,
+
+    get total() {
+      return this.RSS + this.Gerenciamento + this.Consultoria;
+    },
   },
-  Murillo: {
+
+  "Silvio Leal": {
+    RSS: 20000,
+    Gerenciamento: 0,
+    Consultoria: 0,
+
+    get total() {
+      return this.RSS + this.Gerenciamento + this.Consultoria;
+    },
+  },
+
+  "Leonilton Oliveira": {
     RSS: 0,
     Gerenciamento: 0,
     Consultoria: 0,
-    total: 40000,
-  },
-  Silvio: {
-    RSS: 0,
-    Gerenciamento: 0,
-    Consultoria: 0,
-    total: 20000,
-  },
-  Leonilton: {
-    RSS: 0,
-    Gerenciamento: 0,
-    Consultoria: 0,
-    total: 0,
+    get total() {
+      return this.RSS + this.Gerenciamento + this.Consultoria;
+    },
   },
 };
 const META_TIME_MES = 335000;
